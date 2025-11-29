@@ -1,18 +1,51 @@
-import { useState } from "react";
+import { useState, useEffect, useContext } from "react";
+import { useNavigate } from "react-router-dom";
+import { UserDataContext } from '../context/UserContext';
 import { Button } from "@/components/ui/button";
-import { BeakerIcon, FlaskConical, Microscope, ArrowRight, Play } from "lucide-react";
+import { BeakerIcon, FlaskConical, Microscope, ArrowRight, Play, FlaskRound } from "lucide-react";
 import { Link } from "react-router-dom";
 
 const Index = () => {
   const [isHoveringCTA, setIsHoveringCTA] = useState(false);
 
+  const navigate = useNavigate();
+  const { user, setUser } = useContext(UserDataContext);
+
+  useEffect(() => {
+    if (user?.authenticated) {
+      if (user.user.role === "admin") {
+        navigate("/admin/dashboard");
+      } else if (user.user.role === "student") {
+        navigate("/student/dashboard");
+      } else {
+        // if role not set, send to role selection
+        navigate("/select-role");
+      }
+    }
+  }, [user]);
+
+  const handleClick = () => {
+    window.open(`${import.meta.env.VITE_BASE_URL}/api/auth/google`, "_self");
+  }
+
+
   return (
-    <div className="min-h-screen bg-gradient-to-b from-background to-muted/30">
+    <div className="mt-6 min-h-screen bg-gradient-to-b from-background to-muted/30">
       {/* Hero Section */}
       <section className="relative overflow-hidden">
-        <div className="absolute inset-0 bg-gradient-to-br from-primary/5 via-secondary/5 to-transparent" />
-        
-        <div className="container mx-auto px-4 py-24 relative z-10">
+        <div className="container mx-auto px-4 py-22 relative z-10">
+          {/* <div className="absolute inset-0 bg-gradient-to-br from-primary/5 via-secondary/5 to-transparent" /> */}
+          <div className="flex gap-4 mb-6">
+            {user?.authenticated ? (
+              <h1 className="text-3xl font-extrabold tracking-tight bg-gradient-to-r from-primary to-secondary text-transparent bg-clip-text drop-shadow-sm">
+                Hi {user?.user?.firstname} {user?.user?.lastname} 👋 {user?.user?.role}
+              </h1>
+            ) : (
+              <h1 className="text-3xl font-extrabold tracking-tight bg-gradient-to-r from-primary to-secondary text-transparent bg-clip-text drop-shadow-sm">
+                Welcome To Our Platform ✨
+              </h1>
+            )}
+          </div>
           <div className="max-w-6xl mx-auto">
             <div className="grid lg:grid-cols-2 gap-12 items-center">
               {/* Left Content */}
@@ -21,35 +54,43 @@ const Index = () => {
                   <Microscope className="w-4 h-4 text-primary" />
                   <span className="text-sm font-medium text-primary">Experience-Based Learning Platform</span>
                 </div>
-                
+
+                <div className="flex gap-4">
+                  <Button onClick={handleClick} className="bg-blue-500 hover:bg-blue-600 text-white">
+                    Sign In with Google
+                  </Button>
+                </div>
+
                 <h1 className="text-5xl lg:text-6xl font-bold leading-tight">
                   Transform Lab Learning with{" "}
                   <span className="text-gradient">Virtual Hands-On</span>{" "}
                   Experience
                 </h1>
-                
+
                 <p className="text-lg text-muted-foreground leading-relaxed">
-                  Break free from equipment limitations. Our interactive platform lets students 
-                  perform real experiments, adjust parameters, record observations, and build 
+                  Break free from equipment limitations. Our interactive platform lets students
+                  perform real experiments, adjust parameters, record observations, and build
                   genuine laboratory skills—anytime, anywhere.
                 </p>
 
                 <div className="flex flex-wrap gap-4">
                   <Link to="/lab">
-                    <Button 
-                      size="lg" 
+                    <Button
+                      size="lg"
                       className="group bg-gradient-to-r from-primary to-secondary hover:shadow-lg transition-all duration-300"
                       onMouseEnter={() => setIsHoveringCTA(true)}
                       onMouseLeave={() => setIsHoveringCTA(false)}
                     >
                       <Play className="w-5 h-5 mr-2" />
                       Start Your First Experiment
-                      <ArrowRight className={`w-5 h-5 ml-2 transition-transform ${isHoveringCTA ? "translate-x-1" : ""}`} />
+                      <ArrowRight
+                        className={`w-5 h-5 ml-2 transition-transform ${isHoveringCTA ? "translate-x-1" : ""}`}
+                      />
                     </Button>
                   </Link>
-                  
-                  <Button 
-                    size="lg" 
+
+                  <Button
+                    size="lg"
                     variant="outline"
                     className="border-2 hover:bg-muted/50"
                   >
@@ -80,12 +121,37 @@ const Index = () => {
                   <div className="space-y-6">
                     {/* Virtual Lab Equipment Preview */}
                     <div className="flex justify-center gap-6">
+                      {/* Titration Card */}
                       <div className="relative group">
                         <div className="absolute inset-0 bg-gradient-to-br from-primary/20 to-secondary/20 rounded-2xl blur-xl group-hover:blur-2xl transition-all" />
                         <div className="relative bg-card rounded-2xl p-6 border-2 border-primary/20 hover:border-primary/40 transition-all">
                           <BeakerIcon className="w-16 h-16 text-primary mx-auto" />
                           <div className="mt-4 text-center">
                             <div className="text-sm font-semibold">Titration</div>
+                            <div className="text-xs text-muted-foreground">Interactive</div>
+                          </div>
+                        </div>
+                      </div>
+
+                      {/* Distillation Card */}
+                      <div className="relative group">
+                        <div className="absolute inset-0 bg-gradient-to-br from-secondary/20 to-accent/20 rounded-2xl blur-xl group-hover:blur-2xl transition-all" />
+                        <div className="relative bg-card rounded-2xl p-6 border-2 border-secondary/20 hover:border-secondary/40 transition-all">
+                          <FlaskConical className="w-16 h-16 text-secondary mx-auto" />
+                          <div className="mt-4 text-center">
+                            <div className="text-sm font-semibold">Distillation</div>
+                            <div className="text-xs text-muted-foreground">Interactive</div>
+                          </div>
+                        </div>
+                      </div>
+
+                      {/* Salt Analysis Card */}
+                      <div className="relative group">
+                        <div className="absolute inset-0 bg-gradient-to-br from-accent/20 to-primary/20 rounded-2xl blur-xl group-hover:blur-2xl transition-all" />
+                        <div className="relative bg-card rounded-2xl p-6 border-2 border-accent/20 hover:border-accent/40 transition-all">
+                          <FlaskRound className="w-16 h-16 text-accent mx-auto" />
+                          <div className="mt-4 text-center">
+                            <div className="text-sm font-semibold">Salt Analysis</div>
                             <div className="text-xs text-muted-foreground">Interactive</div>
                           </div>
                         </div>
@@ -190,13 +256,14 @@ const Index = () => {
             </div>
 
             <div className="grid md:grid-cols-2 gap-8">
+              {/* Feature Cards */}
               <div className="group glass-effect rounded-2xl p-8 hover:shadow-xl transition-all">
                 <div className="w-14 h-14 rounded-xl bg-gradient-to-br from-primary to-secondary flex items-center justify-center mb-6 group-hover:scale-110 transition-transform">
                   <BeakerIcon className="w-8 h-8 text-white" />
                 </div>
                 <h3 className="text-2xl font-semibold mb-3">Interactive Equipment</h3>
                 <p className="text-muted-foreground leading-relaxed">
-                  Adjust volumes, calibrate instruments, and control every parameter just like in a physical lab. 
+                  Adjust volumes, calibrate instruments, and control every parameter just like in a physical lab.
                   Real-time feedback helps you understand cause and effect.
                 </p>
               </div>
@@ -207,7 +274,7 @@ const Index = () => {
                 </div>
                 <h3 className="text-2xl font-semibold mb-3">Visual Chemistry</h3>
                 <p className="text-muted-foreground leading-relaxed">
-                  Watch color changes, observe reaction endpoints, and see pH shifts in real-time. 
+                  Watch color changes, observe reaction endpoints, and see pH shifts in real-time.
                   Visual learning reinforces chemical concepts.
                 </p>
               </div>
@@ -218,7 +285,7 @@ const Index = () => {
                 </div>
                 <h3 className="text-2xl font-semibold mb-3">Data Recording</h3>
                 <p className="text-muted-foreground leading-relaxed">
-                  Record your own observations, track measurements, and analyze results. 
+                  Record your own observations, track measurements, and analyze results.
                   Build scientific documentation skills through practice.
                 </p>
               </div>
@@ -229,7 +296,7 @@ const Index = () => {
                 </div>
                 <h3 className="text-2xl font-semibold mb-3">Unlimited Practice</h3>
                 <p className="text-muted-foreground leading-relaxed">
-                  Repeat experiments as many times as needed. Make mistakes, learn from them, 
+                  Repeat experiments as many times as needed. Make mistakes, learn from them,
                   and build confidence through repetition—at your own pace.
                 </p>
               </div>
@@ -249,11 +316,10 @@ const Index = () => {
             <p className="text-xl text-muted-foreground mb-8">
               Start with our interactive titration experiment and discover true hands-on learning.
             </p>
-            <Link to="/lab">
-              <Button 
-                size="lg" 
-                className="bg-gradient-to-r from-primary to-secondary hover:shadow-xl transition-all text-lg px-8 py-6"
-              >
+            <Link to="/home">
+              <Button
+                size="lg"
+                className="bg-gradient-to-r from-primary to-secondary hover:shadow-xl transition-all text-lg px-8 py-6">
                 <Play className="w-6 h-6 mr-2" />
                 Begin Your First Experiment
                 <ArrowRight className="w-6 h-6 ml-2" />
