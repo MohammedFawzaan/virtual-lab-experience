@@ -101,7 +101,7 @@ const Index = () => {
                         <span className="text-sm text-muted-foreground">Color Change</span>
                         <div className="flex gap-2">
                           <div className="w-4 h-4 rounded-full bg-red-500" />
-                          <span className="text-sm font-serif">-></span>
+                          <span className="text-sm font-serif">{'->'}</span>
                           <div className="w-4 h-4 rounded-full bg-accent" />
                         </div>
                       </div>
