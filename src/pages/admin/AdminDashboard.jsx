@@ -69,7 +69,8 @@ export default function AdminDashboard() {
               <h2 className="text-2xl font-bold text-primary mb-2">{exp.title}</h2>
               <p className="text-sm text-muted-foreground mb-2">{exp.description}</p>
               <div className="flex gap-2 flex-wrap text-xs text-muted-foreground">
-                <span>Created: {new Date(exp.createdAt).toLocaleDateString()}</span>
+                <span>Created by: {exp.createdBy?.firstname}</span>
+                <span>Created: {new Date(exp.createdAt) .toLocaleDateString()}</span>
               </div>
             </div>
 
