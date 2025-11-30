@@ -41,7 +41,7 @@ export default function AdminDashboard() {
       <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-12 gap-4">
         <div>
           <h1 className="text-4xl font-extrabold text-gradient mb-2">
-            Admin Dashboard
+            Admin Dashboard - {user?.user?.firstname + " " + user?.user?.lastname}
           </h1>
           <p className="text-muted-foreground">Manage and create experiments for students</p>
         </div>
