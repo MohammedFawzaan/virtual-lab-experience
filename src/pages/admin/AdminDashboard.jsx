@@ -26,6 +26,7 @@ export default function AdminDashboard() {
   };
 
   const deleteExperiment = async (id) => {
+    if (!confirm("Are you sure you want to delete this run? This action cannot be undone.")) return;
     try {
       await api.delete(`/api/experiments/${id}`);
       setExperiments(experiments.filter(exp => exp._id !== id));

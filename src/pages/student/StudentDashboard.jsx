@@ -76,16 +76,41 @@ export default function StudentDashboard() {
   return (
     <div className="min-h-screen p-10 bg-gradient-to-br from-muted/20 via-muted/10 to-white">
       {/* Header */}
-      <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-12 gap-4">
+      <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-6 gap-4">
         <div>
           <h1 className="text-4xl font-extrabold text-gradient mb-2">
-            Welcome, {user?.user?.firstname +" " +user?.user?.lastname}!
+            Welcome, {user?.user?.firstname + " " + user?.user?.lastname}!
           </h1>
           <p className="text-muted-foreground">Explore and perform the available experiments</p>
         </div>
         <Button onClick={onLogout} className="bg-red-500 hover:bg-red-600 text-white">
           Sign Out
         </Button>
+      </div>
+
+      {/* Demo Videos Section */}
+      <div className="mb-8 bg-white rounded-3xl shadow-lg border border-muted/20 p-6">
+        <h2 className="text-2xl font-bold mb-4">📹 Experiment Demo Videos</h2>
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+          <Button
+            onClick={() => window.open('https://www.youtube.com/watch?v=2h01ovEzBTw&list=PL6f7Lu8oDTmamwKoOR0Km-yzD_aphrNRx&index=2', '_blank')}
+            className="bg-gradient-to-r from-blue-500 to-blue-600 text-white"
+          >
+            🧪 Titration Demo
+          </Button>
+          <Button
+            onClick={() => window.open('https://www.youtube.com/watch?v=xRGR5ZvO3AU&list=PL6f7Lu8oDTmamwKoOR0Km-yzD_aphrNRx&index=3', '_blank')}
+            className="bg-gradient-to-r from-purple-500 to-purple-600 text-white"
+          >
+            ⚗️ Distillation Demo
+          </Button>
+          <Button
+            onClick={() => window.open('https://www.youtube.com/watch?v=9VbQO6bv6HQ&list=PL6f7Lu8oDTmamwKoOR0Km-yzD_aphrNRx&index=1', '_blank')}
+            className="bg-gradient-to-r from-green-500 to-green-600 text-white"
+          >
+            🧂 Salt Analysis Demo
+          </Button>
+        </div>
       </div>
 
       {/* Experiments Grid */}

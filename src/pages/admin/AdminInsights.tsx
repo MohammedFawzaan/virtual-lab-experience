@@ -3,6 +3,13 @@ import { useParams, Link } from "react-router-dom";
 import api from "@/api/client";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
+import { Trash2 } from "lucide-react";
+import { toast } from "sonner";
+
+const formatObservationTime = (timeStr: string) => {
+  const date = new Date(timeStr);
+  return isNaN(date.getTime()) ? timeStr : date.toLocaleTimeString();
+};
 
 export default function AdminInsights() {
   const { experimentId } = useParams();
@@ -16,8 +23,28 @@ export default function AdminInsights() {
       .finally(() => setLoading(false));
   }, [experimentId]);
 
+  const handleDelete = async (runId: string, type: string) => {
+    if (!confirm("Are you sure you want to delete this run? This action cannot be undone.")) return;
+
+    try {
+      // Determine endpoint based on type
+      let endpoint = "";
+      if (type === 'titration') endpoint = `/api/titration/${runId}`;
+      else if (type === 'distillation') endpoint = `/api/distillation/${runId}`;
+      else if (type === 'salt-analysis') endpoint = `/api/saltanalysis/${runId}`;
+      else return;
+
+      await api.delete(endpoint);
+      setRuns(runs.filter((r: any) => r._id !== runId));
+      toast.success("Run deleted successfully");
+    } catch (error) {
+      console.error(error);
+      toast.error("Failed to delete run");
+    }
+  };
+
   if (loading) return <div className="p-10">Loading...</div>;
-  if (runs.length === 0) return <div className="p-10">No users has performed this experiment yet.</div>;
+  if (runs.length === 0) return <div className="p-10">No student has performed this experiment yet.</div>;
 
   return (
     <div className="p-10">
@@ -33,9 +60,19 @@ export default function AdminInsights() {
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
         {runs.map((run) => (
           <Card key={run._id} className="p-4">
-            <h2 className="font-bold text-lg">
-              {run.userId.firstname} {run.userId.lastname}
-            </h2>
+            <div className="flex justify-between items-start">
+              <h2 className="font-bold text-lg">
+                {run.userId.firstname} {run.userId.lastname}
+              </h2>
+              <Button
+                variant="destructive"
+                size="icon"
+                className="h-8 w-8"
+                onClick={() => handleDelete(run._id, run.experimentType)}
+              >
+                <Trash2 className="h-4 w-4" />
+              </Button>
+            </div>
             <p className="text-sm text-muted-foreground">{run.userId.email}</p>
 
             <p className="mt-2">
@@ -79,11 +116,9 @@ export default function AdminInsights() {
               <h3 className="font-semibold">Observations:</h3>
               {run.observations.map((obs, i) => (
                 <div key={i} className="text-xs border-b py-1">
-                  <p>{new Date(obs.time).toLocaleTimeString()}</p>
+                  <p>{formatObservationTime(obs.time)}</p>
                   <p>{obs.message}</p>
-                  {obs.volume && <p>Volume: {obs.volume}</p>}
-                  {obs.pH && <p>pH: {obs.pH}</p>}
-                  {obs.color && <p>Color: {obs.color}</p>}
+
                 </div>
               ))}
             </div>

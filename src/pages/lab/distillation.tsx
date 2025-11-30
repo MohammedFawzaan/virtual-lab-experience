@@ -137,7 +137,7 @@ const Distillation: React.FC<Props> = ({ experimentId: propExperimentId, experim
   useEffect(() => {
     if (isComplete) {
       finalize();
-      navigate('/student/dashboard');
+      // navigate('/student/dashboard'); // Removed - show completion UI instead
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isComplete]);
@@ -145,7 +145,7 @@ const Distillation: React.FC<Props> = ({ experimentId: propExperimentId, experim
   // Reset
   const resetExperiment = async () => {
     try {
-      if (runId) await api.delete(`/api/distillation/${runId}`);
+      // if (runId) await api.delete(`/api/distillation/${runId}`); // Removed - preserve data in DB
     } catch { }
     finally {
       setTemperature(20);

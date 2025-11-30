@@ -3,6 +3,11 @@ import { useParams, Link } from "react-router-dom";
 import api from "@/api/client";
 import { Button } from "@/components/ui/button";
 
+const formatObservationTime = (timeStr: string) => {
+  const date = new Date(timeStr);
+  return isNaN(date.getTime()) ? timeStr : date.toLocaleTimeString();
+};
+
 export default function DataInsights() {
   const { type, runId } = useParams();
   const [run, setRun] = useState<any>(null);
@@ -74,14 +79,7 @@ export default function DataInsights() {
           ) : (
             run.observations.map((obs: any, idx: number) => (
               <div key={idx} className="p-3 rounded-lg bg-white shadow-sm">
-                <p><strong>{new Date(obs.time).toLocaleTimeString()}</strong>: {obs.message}</p>
-
-                {type === 'titration' && (
-                  <p className="text-sm text-muted-foreground mt-1">
-                    Volume: {obs.volume} mL, pH: {obs.pH}, Color: {obs.color}
-                  </p>
-                )}
-
+                <p><strong>{formatObservationTime(obs.time)}</strong>: {obs.message}</p>
                 {/* Distillation observations don't have pH/Color usually stored in the same flat way in the obs array 
                     unless we put them there. In our controller addObservation, we put 'message' in obs. 
                     If we want detailed fields, we'd need to check how we saved them.

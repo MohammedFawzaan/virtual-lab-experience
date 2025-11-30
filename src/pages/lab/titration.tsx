@@ -67,8 +67,9 @@ const Titration: React.FC<Props> = ({ experimentId: propExperimentId, experiment
     } else if (vol < 30) {
       setPH(7 + (vol - 25) * 0.2);
       setColor("#ffd6e8");
-      if (!isComplete && vol >= 24.5 && vol <= 25.5) {
-        setIsComplete(true);
+      if (vol >= 24.5 && vol <= 25.5) {
+        // Just notify, do not auto-complete
+        // setIsComplete(true); <-- REMOVED
         addObservationLocal(`Endpoint reached at ${vol.toFixed(1)} mL - Color changed to pink!`);
         toast.success("Endpoint detected!");
       }
@@ -133,35 +134,35 @@ const Titration: React.FC<Props> = ({ experimentId: propExperimentId, experiment
   };
 
   // Auto finalize on endpoint
-  useEffect(() => {
-    if (isComplete) {
-      finalize();
-      navigate('/student/dashboard');
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [isComplete]);
+  // Auto finalize removed to allow manual completion
+  // useEffect(() => {
+  //   if (isComplete) {
+  //     finalize();
+  //     navigate('/student/dashboard');
+  //   }
+  // }, [isComplete]);
 
-  // Reset
+  // Reset - preserves completed data in DB
   const resetExperiment = async () => {
+    // Reset UI state only - don't delete completed run from database
+    setVolume(0);
+    setPH(1.2);
+    setColor("#ff6b6b");
+    setIsComplete(false);
+    setObservations([]);
+    setRunId(null);
+    hasFinalizedRef.current = false;
+
+    toast.info("Experiment reset");
+
+    // Start new run
     try {
-      if (runId) await api.delete(`/api/titration/${runId}`);
-    } catch { }
-    finally {
-      setVolume(0);
-      setPH(1.2);
-      setColor("#ff6b6b");
-      setIsComplete(false);
-      setObservations([]);
-      setRunId(null);
-      hasFinalizedRef.current = false;
-
-      toast.info("Experiment reset");
-
-      // restart run
       if (experimentId) {
         const res = await api.post("/api/titration", { experimentId });
         setRunId(res.data._id);
       }
+    } catch (error) {
+      toast.error("Failed to start new run");
     }
   };
 
@@ -240,11 +241,6 @@ const Titration: React.FC<Props> = ({ experimentId: propExperimentId, experiment
                 <p className="text-sm text-muted-foreground">
                   You've successfully identified the endpoint. Data saved to your profile.
                 </p>
-                <div className="mt-3 flex gap-2">
-                  <Button onClick={() => { /* navigate to next experiment or show results */ }}>
-                    Next: Distillation
-                  </Button>
-                </div>
               </div>
             )}
           </Card>

@@ -53,12 +53,6 @@ const Index = () => {
                   <span className="text-sm font-medium text-primary">Experience-Based Learning Platform</span>
                 </div>
 
-                {/* <div className="flex gap-4">
-                  <Button onClick={handleClick} className="bg-blue-500 hover:bg-blue-600 text-white">
-                    Sign In with Google
-                  </Button>
-                </div> */}
-
                 <h1 className="text-5xl lg:text-6xl font-bold leading-tight">
                   Transform Lab Learning with{" "}
                   <span className="text-gradient">Virtual Hands-On</span>{" "}
