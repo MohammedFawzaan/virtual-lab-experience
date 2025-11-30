@@ -14,7 +14,7 @@ export default function PerformExperiment() {
     api.get(`/api/experiments/${id}`).then((res) => setExp(res.data));
   }, [id]);
 
-  if (!exp) return <p>Loading...</p>;
+  if (!exp) return <p className="text-center text-xl">Loading...</p>;
 
   return (
     <div>

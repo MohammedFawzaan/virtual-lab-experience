@@ -1,5 +1,5 @@
 import { useContext, useEffect } from 'react'
-import { UserDataContext } from './context/UserContext';
+import { UserDataContext } from './context/UserContext.tsx';
 import { useNavigate } from 'react-router-dom';
 
 const UserProtectedWrapper = ({ children }) => {
@@ -7,12 +7,12 @@ const UserProtectedWrapper = ({ children }) => {
   const navigate = useNavigate();
 
   useEffect(() => {
-    if(user && user.authenticated === false) {
-        navigate('/');
+    if (user && user.authenticated === false) {
+      navigate('/');
     }
   }, [user]);
 
-  if(user === null)
+  if (user === null)
     return <div>Loading...</div>
 
   return (

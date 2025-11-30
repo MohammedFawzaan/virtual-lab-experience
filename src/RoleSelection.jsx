@@ -1,9 +1,8 @@
 import { useState, useContext } from "react";
 import axios from "axios";
-import { UserDataContext } from "./context/UserContext";
+import { UserDataContext } from "./context/UserContext.tsx";
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
-
 
 const RoleSelection = () => {
   const { user, setUser } = useContext(UserDataContext);

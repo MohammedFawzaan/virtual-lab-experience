@@ -60,13 +60,6 @@ export default function CreateExperiment() {
           <option value="salt-analysis">Salt Analysis</option>
         </select>
 
-        <input
-          name="videoUrl"
-          placeholder="Demo Video URL"
-          className="border p-3 rounded-lg"
-          onChange={handleChange}
-        />
-
         <Button onClick={handleSubmit}>Create</Button>
       </div>
     </div>

@@ -1,6 +1,6 @@
 import { useEffect, useState, useContext } from "react";
 import { useNavigate, Link } from "react-router-dom";
-import { UserDataContext } from '../../context/UserContext';
+import { UserDataContext } from '../../context/UserContext.tsx';
 import api from "@/api/client";
 import { Button } from "@/components/ui/button";
 
@@ -15,13 +15,52 @@ export default function StudentDashboard() {
     api.get("/api/experiments").then((res) => setExperiments(res.data));
 
     // Load user experiment statuses
-    api.get("/api/titration").then((res) => {
-      const map = {};
-      res.data.forEach((run) => {
-        map[run.experimentId?._id] = { isCompleted: run.isComplete, runId: run._id };
-      });
-      setStatuses(map);
-    });
+    const fetchStatuses = async () => {
+      try {
+        const [titrationRes, distillationRes, saltAnalysisRes] = await Promise.all([
+          api.get("/api/titration"),
+          api.get("/api/distillation"),
+          api.get("/api/saltanalysis")
+        ]);
+
+        const map = {};
+
+        titrationRes.data.forEach((run) => {
+          if (run.experimentId) {
+            map[run.experimentId._id] = {
+              isCompleted: run.isComplete,
+              runId: run._id,
+              type: 'titration'
+            };
+          }
+        });
+
+        distillationRes.data.forEach((run) => {
+          if (run.experimentId) {
+            map[run.experimentId._id] = {
+              isCompleted: run.isComplete,
+              runId: run._id,
+              type: 'distillation'
+            };
+          }
+        });
+
+        saltAnalysisRes.data.forEach((run) => {
+          if (run.experimentId) {
+            map[run.experimentId._id] = {
+              isCompleted: run.isComplete,
+              runId: run._id,
+              type: 'salt-analysis'
+            };
+          }
+        });
+
+        setStatuses(map);
+      } catch (error) {
+        console.error("Failed to load statuses", error);
+      }
+    };
+    fetchStatuses();
   }, []);
 
   const onLogout = async () => {
@@ -40,7 +79,7 @@ export default function StudentDashboard() {
       <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-12 gap-4">
         <div>
           <h1 className="text-4xl font-extrabold text-gradient mb-2">
-            Welcome, {user?.user?.firstname}!
+            Welcome, {user?.user?.firstname +" " +user?.user?.lastname}!
           </h1>
           <p className="text-muted-foreground">Explore and perform the available experiments</p>
         </div>
@@ -62,7 +101,8 @@ export default function StudentDashboard() {
             >
               <div className="mb-4">
                 <h2 className="capitalize text-2xl font-bold text-primary mb-2">{exp.title}</h2>
-                <p className="text-sm text-muted-foreground mb-2">{exp.subtitle}</p>
+                <p className="text-sm text-muted-foreground mb-2">Description: {exp?.description}</p>
+                <p className="text-sm text-muted-foreground mb-2">Created By: {exp.createdBy.firstname + " " + exp.createdBy.lastname}</p>
                 <div className="text-xs text-muted-foreground">
                   Created: {new Date(exp.createdAt).toLocaleDateString()}
                 </div>
@@ -71,7 +111,7 @@ export default function StudentDashboard() {
               <div className="flex justify-end mt-4">
                 {completed ? (
                   <Button
-                    onClick={() => navigate(`/dashboard/insights/${status.runId}`)}
+                    onClick={() => navigate(`/dashboard/insights/${status.type}/${status.runId}`)}
                     className="bg-gradient-to-r from-green-500 to-green-600 text-white"
                   >
                     Data Insights

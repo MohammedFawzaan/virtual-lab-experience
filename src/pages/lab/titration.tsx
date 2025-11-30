@@ -171,9 +171,9 @@ const Titration: React.FC<Props> = ({ experimentId: propExperimentId, experiment
       {/* HEADER */}
       <header className="border-b border-border/50 backdrop-blur-sm bg-background/80 sticky top-0 z-50">
         <div className="container mx-auto px-4 py-4 flex items-center justify-between">
-          <Link to="/lab">
+          <Link to="/student/dashboard">
             <Button variant="ghost" size="sm">
-              <ArrowLeft className="w-4 h-4 mr-2" /> Back to Lab
+              <ArrowLeft className="w-4 h-4 mr-2" /> Back to Dashboard
             </Button>
           </Link>
 

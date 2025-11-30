@@ -1,6 +1,6 @@
-import { useState, useEffect, useContext } from "react";
 import { useNavigate } from "react-router-dom";
-import { UserDataContext } from '../context/UserContext';
+import { useContext, useEffect, useState } from "react";
+import { UserDataContext } from "../context/UserContext";
 import { Button } from "@/components/ui/button";
 import { BeakerIcon, FlaskConical, Microscope, ArrowRight, Play, FlaskRound } from "lucide-react";
 import { Link } from "react-router-dom";
@@ -10,7 +10,6 @@ const Index = () => {
 
   const navigate = useNavigate();
   const { user, setUser } = useContext(UserDataContext);
-
   useEffect(() => {
     if (user?.authenticated) {
       if (user.user.role === "admin") {
@@ -18,7 +17,6 @@ const Index = () => {
       } else if (user.user.role === "student") {
         navigate("/student/dashboard");
       } else {
-        // if role not set, send to role selection
         navigate("/select-role");
       }
     }
@@ -35,18 +33,18 @@ const Index = () => {
       <section className="relative overflow-hidden">
         <div className="container mx-auto px-4 py-22 relative z-10">
           {/* <div className="absolute inset-0 bg-gradient-to-br from-primary/5 via-secondary/5 to-transparent" /> */}
-          <div className="flex gap-4 mb-6">
-            {user?.authenticated ? (
-              <h1 className="text-3xl font-extrabold tracking-tight bg-gradient-to-r from-primary to-secondary text-transparent bg-clip-text drop-shadow-sm">
-                Hi {user?.user?.firstname} {user?.user?.lastname} 👋 {user?.user?.role}
-              </h1>
-            ) : (
-              <h1 className="text-3xl font-extrabold tracking-tight bg-gradient-to-r from-primary to-secondary text-transparent bg-clip-text drop-shadow-sm">
-                Welcome To Our Platform ✨
-              </h1>
-            )}
-          </div>
           <div className="max-w-6xl mx-auto">
+            <div className="flex gap-4 mb-6">
+              {user?.authenticated ? (
+                <h1 className="text-3xl font-extrabold tracking-tight bg-gradient-to-r from-primary to-secondary text-transparent bg-clip-text drop-shadow-sm">
+                  Hi {user?.user?.firstname} {user?.user?.lastname} 👋 {user?.user?.role}
+                </h1>
+              ) : (
+                <h1 className="text-3xl font-extrabold tracking-tight bg-gradient-to-r from-primary to-secondary text-transparent bg-clip-text drop-shadow-sm">
+                  Welcome To LabXperience ✨
+                </h1>
+              )}
+            </div>
             <div className="grid lg:grid-cols-2 gap-12 items-center">
               {/* Left Content */}
               <div className="space-y-8">
@@ -55,11 +53,11 @@ const Index = () => {
                   <span className="text-sm font-medium text-primary">Experience-Based Learning Platform</span>
                 </div>
 
-                <div className="flex gap-4">
+                {/* <div className="flex gap-4">
                   <Button onClick={handleClick} className="bg-blue-500 hover:bg-blue-600 text-white">
                     Sign In with Google
                   </Button>
-                </div>
+                </div> */}
 
                 <h1 className="text-5xl lg:text-6xl font-bold leading-tight">
                   Transform Lab Learning with{" "}
@@ -74,27 +72,18 @@ const Index = () => {
                 </p>
 
                 <div className="flex flex-wrap gap-4">
-                  <Link to="/lab">
-                    <Button
-                      size="lg"
-                      className="group bg-gradient-to-r from-primary to-secondary hover:shadow-lg transition-all duration-300"
-                      onMouseEnter={() => setIsHoveringCTA(true)}
-                      onMouseLeave={() => setIsHoveringCTA(false)}
-                    >
-                      <Play className="w-5 h-5 mr-2" />
-                      Start Your First Experiment
-                      <ArrowRight
-                        className={`w-5 h-5 ml-2 transition-transform ${isHoveringCTA ? "translate-x-1" : ""}`}
-                      />
-                    </Button>
-                  </Link>
-
                   <Button
                     size="lg"
-                    variant="outline"
-                    className="border-2 hover:bg-muted/50"
+                    className="group bg-gradient-to-r from-primary to-secondary hover:shadow-lg transition-all duration-300"
+                    onMouseEnter={() => setIsHoveringCTA(true)}
+                    onMouseLeave={() => setIsHoveringCTA(false)}
+                    onClick={handleClick}
                   >
-                    Watch Demo
+                    <Play className="w-5 h-5 mr-2" />
+                    Login to Start Your First Experiment
+                    <ArrowRight
+                      className={`w-5 h-5 ml-2 transition-transform ${isHoveringCTA ? "translate-x-1" : ""}`}
+                    />
                   </Button>
                 </div>
 
@@ -196,8 +185,8 @@ const Index = () => {
         </div>
       </section>
 
-      {/* Problem Statement Section */}
-      <section className="py-24 bg-muted/30">
+      {/* Problem Statement Section  */}
+      <section className="py-24 bg-muted/3 0">
         <div className="container mx-auto px-4">
           <div className="max-w-4xl mx-auto">
             <div className="text-center mb-12">
@@ -242,8 +231,8 @@ const Index = () => {
         </div>
       </section>
 
-      {/* Features Section */}
-      <section className="py-24">
+      {/* Features Section  */}
+      <section className="py-2 4">
         <div className="container mx-auto px-4">
           <div className="max-w-6xl mx-auto">
             <div className="text-center mb-16">
@@ -305,8 +294,8 @@ const Index = () => {
         </div>
       </section>
 
-      {/* CTA Section */}
-      <section className="py-24 bg-gradient-to-br from-primary/10 via-secondary/10 to-accent/10">
+      {/* CTA Section  */}
+      <section className="py-24 bg-gradient-to-br from-primary/10 via-secondary/10 to-accent/1 0">
         <div className="container mx-auto px-4">
           <div className="max-w-4xl mx-auto text-center">
             <h2 className="text-4xl md:text-5xl font-bold mb-6">
@@ -316,15 +305,6 @@ const Index = () => {
             <p className="text-xl text-muted-foreground mb-8">
               Start with our interactive titration experiment and discover true hands-on learning.
             </p>
-            <Link to="/home">
-              <Button
-                size="lg"
-                className="bg-gradient-to-r from-primary to-secondary hover:shadow-xl transition-all text-lg px-8 py-6">
-                <Play className="w-6 h-6 mr-2" />
-                Begin Your First Experiment
-                <ArrowRight className="w-6 h-6 ml-2" />
-              </Button>
-            </Link>
           </div>
         </div>
       </section>

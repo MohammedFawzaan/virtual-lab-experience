@@ -1,81 +1,182 @@
 import { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
-import { Slider } from "@/components/ui/slider";
-import { ArrowLeft, RotateCcw, TestTube } from "lucide-react";
-import { Link } from "react-router-dom";
+import { ArrowLeft, RotateCcw, CheckCircle2, TestTube2, Flame, Droplet } from "lucide-react";
+import { Link, useParams } from "react-router-dom";
 import { toast } from "sonner";
+import api from "@/api/client";
 
 /**
- * Simple Salt Analysis simulation:
- * - Reagent slider (0 → 5 mL) simulates stepwise addition of reagent
- * - Preliminary test: pH indicator changes
- * - Flame test trigger at specific reagent volumes (simulated)
- * - Precipitation test when reagent volume crosses thresholds
- * - Detects and suggests likely cation/anion based on simple rules
+ * Salt Analysis - Practical qualitative analysis
+ * Students perform systematic tests to identify cations and anions
  */
 
-const SaltAnalysis = () => {
-  const [reagent, setReagent] = useState(0); // mL
-  const [pH, setPH] = useState(7.0);
-  const [color, setColor] = useState("#f0f0f0");
-  const [stage, setStage] = useState<"idle" | "preliminary" | "flame" | "precipitate">("idle");
-  const [isComplete, setIsComplete] = useState(false);
-  const [observations, setObservations] = useState<string[]>([]);
-  const [inference, setInference] = useState<string | null>(null);
+const CATIONS = [
+  { id: "Fe3+", name: "Fe³⁺ (Ferric)", flameColor: "No distinct color", precipitate: "Reddish-brown with NaOH" },
+  { id: "Cu2+", name: "Cu²⁺ (Cupric)", flameColor: "Green", precipitate: "Blue with NaOH" },
+  { id: "Zn2+", name: "Zn²⁺ (Zinc)", flameColor: "No distinct color", precipitate: "White with NaOH" },
+  { id: "Ca2+", name: "Ca²⁺ (Calcium)", flameColor: "Brick red", precipitate: "White with (NH₄)₂CO₃" },
+];
 
-  useEffect(() => {
-    // Simple logic to simulate changes with reagent addition
-    if (reagent === 0) {
-      setStage("idle");
-      setPH(7.0);
-      setColor("#f0f0f0");
-      setInference(null);
-      setIsComplete(false);
+const ANIONS = [
+  { id: "Cl-", name: "Cl⁻ (Chloride)", test: "AgNO₃", result: "White precipitate" },
+  { id: "SO42-", name: "SO₄²⁻ (Sulfate)", test: "BaCl₂", result: "White precipitate" },
+  { id: "NO3-", name: "NO₃⁻ (Nitrate)", test: "Brown ring test", result: "Brown ring" },
+  { id: "CO32-", name: "CO₃²⁻ (Carbonate)", test: "Dilute acid", result: "Effervescence" },
+];
+
+export default function SaltAnalysis() {
+  const { id: experimentId } = useParams();
+  const [runId, setRunId] = useState<string | null>(null);
+  const [isRunning, setIsRunning] = useState(false);
+
+  // Test stages
+  const [stage, setStage] = useState<"idle" | "preliminary" | "flame" | "confirmatory" | "complete">("idle");
+
+  // Test results
+  const [phResult, setPhResult] = useState<string>("");
+  const [flameTestDone, setFlameTestDone] = useState(false);
+  const [flameColor, setFlameColor] = useState<string>("");
+  const [selectedCation, setSelectedCation] = useState<string>("");
+  const [selectedAnion, setSelectedAnion] = useState<string>("");
+
+  // Confirmatory tests
+  const [cationTests, setCationTests] = useState<Array<{ test: string, result: string }>>([]);
+  const [anionTests, setAnionTests] = useState<Array<{ test: string, result: string }>>([]);
+
+  // Observations
+  const [observations, setObservations] = useState<string[]>([]);
+
+  const addObservation = (message: string) => {
+    const obs = `${new Date().toLocaleTimeString()}: ${message}`;
+    setObservations(prev => [...prev, obs]);
+  };
+
+  const startRun = async () => {
+    try {
+      const res = await api.post("/api/saltanalysis", { experimentId });
+      setRunId(res.data._id);
+      setIsRunning(true);
+      setStage("preliminary");
+      toast.success("Salt Analysis Started");
+      addObservation("Experiment started");
+    } catch (err) {
+      console.error(err);
+      toast.error("Failed to start experiment");
+    }
+  };
+
+  const performPHTest = async (ph: string) => {
+    setPhResult(ph);
+    addObservation(`pH Test: ${ph}`);
+
+    if (runId) {
+      await api.post(`/api/saltanalysis/${runId}/observations`, {
+        message: `pH Test: ${ph}`,
+        testType: "preliminary",
+        testName: "pH Test",
+        result: ph
+      });
+    }
+
+    toast.success(`pH: ${ph}`);
+  };
+
+  const performFlameTest = async (color: string) => {
+    setFlameColor(color);
+    setFlameTestDone(true);
+    setStage("confirmatory");
+    addObservation(`Flame Test: ${color}`);
+
+    if (runId) {
+      await api.post(`/api/saltanalysis/${runId}/observations`, {
+        message: `Flame Test: ${color}`,
+        testType: "preliminary",
+        testName: "Flame Test",
+        result: color
+      });
+    }
+
+    toast.success(`Flame color: ${color}`);
+  };
+
+  const performCationTest = async (reagent: string, observation: string) => {
+    const test = { test: reagent, result: observation };
+    setCationTests(prev => [...prev, test]);
+    addObservation(`Cation test with ${reagent}: ${observation}`);
+
+    if (runId) {
+      await api.post(`/api/saltanalysis/${runId}/observations`, {
+        message: `Cation test: ${reagent} - ${observation}`,
+        testType: "confirmatory",
+        testName: `Cation Test (${reagent})`,
+        reagent,
+        observation
+      });
+    }
+
+    toast.success("Cation test recorded");
+  };
+
+  const performAnionTest = async (reagent: string, observation: string) => {
+    const test = { test: reagent, result: observation };
+    setAnionTests(prev => [...prev, test]);
+    addObservation(`Anion test with ${reagent}: ${observation}`);
+
+    if (runId) {
+      await api.post(`/api/saltanalysis/${runId}/observations`, {
+        message: `Anion test: ${reagent} - ${observation}`,
+        testType: "confirmatory",
+        testName: `Anion Test (${reagent})`,
+        reagent,
+        observation
+      });
+    }
+
+    toast.success("Anion test recorded");
+  };
+
+  const completeExperiment = async () => {
+    if (!runId) return;
+
+    if (!selectedCation || !selectedAnion) {
+      toast.error("Please select both cation and anion");
       return;
     }
 
-    // preliminary (indicator) — small reagent additions
-    if (reagent > 0 && reagent < 1.5) {
-      setStage("preliminary");
-      setPH(7 - reagent * 2); // slight acidity
-      setColor("#ffefc2"); // light yellow (indicator change)
-    } else if (reagent >= 1.5 && reagent < 3.0) {
-      // flame test window (simulated)
-      setStage("flame");
-      setPH(6.0 - (reagent - 1.5) * 0.5);
-      setColor("#ffd6e8");
-    } else {
-      // precipitation region
-      setStage("precipitate");
-      setPH(5.0 - (reagent - 3.0) * 0.5);
-      setColor("#e6f7ff");
-    }
+    try {
+      const cationName = CATIONS.find(c => c.id === selectedCation)?.name || selectedCation;
+      const anionName = ANIONS.find(a => a.id === selectedAnion)?.name || selectedAnion;
+      const finalResult = `${cationName} + ${anionName}`;
 
-    // simple inference heuristics
-    if (reagent >= 3.5 && !isComplete) {
-      // detect likely ions — toy logic for demo
-      setIsComplete(true);
-      const guessed = Math.random() > 0.5 ? "Chloride (Cl⁻) detected — white precipitate likely" : "Sulfate (SO₄²⁻) suspected — Ba²⁺ test suggested";
-      setInference(guessed);
-      addObservation(`Inference: ${guessed}`);
-      toast.success("Analysis Suggestion Ready", { description: guessed });
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [reagent]);
+      await api.post(`/api/saltanalysis/${runId}/finalize`, {
+        detectedCation: cationName,
+        detectedAnion: anionName,
+        finalResult
+      });
 
-  const addObservation = (obs: string) =>
-    setObservations((prev) => [...prev, `${new Date().toLocaleTimeString()}: ${obs}`]);
+      setStage("complete");
+      toast.success("Experiment Completed!", { description: finalResult });
+      addObservation(`Final Result: ${finalResult}`);
+    } catch (err) {
+      console.error(err);
+      toast.error("Failed to complete experiment");
+    }
+  };
 
   const resetExperiment = () => {
-    setReagent(0);
-    setPH(7.0);
-    setColor("#f0f0f0");
+    setRunId(null);
+    setIsRunning(false);
     setStage("idle");
-    setIsComplete(false);
+    setPhResult("");
+    setFlameTestDone(false);
+    setFlameColor("");
+    setSelectedCation("");
+    setSelectedAnion("");
+    setCationTests([]);
+    setAnionTests([]);
     setObservations([]);
-    setInference(null);
-    toast.info("Experiment Reset", { description: "Salt analysis cleared." });
+    toast.info("Experiment Reset");
   };
 
   return (
@@ -84,16 +185,22 @@ const SaltAnalysis = () => {
       <header className="border-b border-border/50 backdrop-blur-sm bg-background/80 sticky top-0 z-50">
         <div className="container mx-auto px-4 py-4">
           <div className="flex items-center justify-between">
-            <Link to="/lab">
+            <Link to="/student/dashboard">
               <Button variant="ghost" size="sm">
-                <ArrowLeft className="w-4 h-4 mr-2" /> Back to Lab
+                <ArrowLeft className="w-4 h-4 mr-2" /> Back to Dashboard
               </Button>
             </Link>
-            <h1 className="text-xl font-semibold">Salt Analysis — Virtual Lab</h1>
-            <Button variant="outline" size="sm" onClick={resetExperiment}>
-              <RotateCcw className="w-4 h-4 mr-2" />
-              Reset
-            </Button>
+            <h1 className="text-xl font-semibold">Salt Analysis — Qualitative Analysis</h1>
+            <div className="flex gap-2">
+              <Button variant="outline" size="sm" onClick={resetExperiment}>
+                <RotateCcw className="w-4 h-4 mr-2" /> Reset
+              </Button>
+              {isRunning && stage !== "complete" && (
+                <Button size="sm" onClick={completeExperiment} disabled={!selectedCation || !selectedAnion}>
+                  <CheckCircle2 className="w-4 h-4 mr-2" /> Complete
+                </Button>
+              )}
+            </div>
           </div>
         </div>
       </header>
@@ -104,148 +211,282 @@ const SaltAnalysis = () => {
           {/* Left Panel - Instructions */}
           <Card className="glass-effect p-6 space-y-6 lg:col-span-1">
             <div className="flex items-center gap-2">
-              <TestTube className="w-5 h-5 text-primary" />
-              <h2 className="text-xl font-semibold">Salt Analysis (Simple)</h2>
+              <TestTube2 className="w-5 h-5 text-primary" />
+              <h2 className="text-xl font-semibold">Salt Analysis</h2>
             </div>
 
             <div className="space-y-4">
               <div>
                 <h3 className="font-semibold text-sm mb-2 text-primary">Objective</h3>
                 <p className="text-sm text-muted-foreground">
-                  Perform preliminary & confirmatory style tests to suggest likely ions present.
+                  Identify unknown cation and anion through systematic qualitative analysis.
                 </p>
               </div>
 
               <div>
                 <h3 className="font-semibold text-sm mb-2 text-primary">Procedure</h3>
                 <ol className="text-sm text-muted-foreground space-y-2 list-decimal list-inside">
-                  <li>Add reagent slowly (use slider).</li>
-                  <li>Watch pH / color indicator changes (preliminary).</li>
-                  <li>Observe flame/precipitate simulation and note results.</li>
+                  <li>Start the experiment</li>
+                  <li>Perform preliminary tests (pH, flame)</li>
+                  <li>Conduct confirmatory tests for cation</li>
+                  <li>Conduct confirmatory tests for anion</li>
+                  <li>Identify and record results</li>
                 </ol>
               </div>
 
               <div>
-                <h3 className="font-semibold text-sm mb-2 text-primary">Safety Notes</h3>
-                <ul className="text-sm text-muted-foreground space-y-1">
-                  <li>• Add reagent dropwise in real labs — simulated here</li>
-                  <li>• Use flame test only under supervision (simulated)</li>
-                </ul>
+                <h3 className="font-semibold text-sm mb-2 text-primary">Current Stage</h3>
+                <div className="p-3 rounded-lg bg-accent/10 border border-accent/30">
+                  <p className="text-sm font-semibold capitalize">{stage}</p>
+                </div>
               </div>
             </div>
+          </Card>
 
-            {isComplete && inference && (
-              <div className="p-4 rounded-lg bg-accent/10 border border-accent/30">
-                <div className="flex items-center gap-2 mb-2">
-                  <span className="text-2xl">🔎</span>
-                  <h3 className="font-semibold text-accent">Suggested Inference</h3>
-                </div>
-                <p className="text-sm text-muted-foreground">{inference}</p>
+          {/* Center Panel - Tests */}
+          <Card className="glass-effect p-8 lg:col-span-1 space-y-6">
+            {!isRunning ? (
+              <div className="flex flex-col items-center justify-center h-full space-y-4">
+                <TestTube2 className="w-16 h-16 text-primary/50" />
+                <h2 className="text-2xl font-bold text-center">Ready to Begin</h2>
+                <p className="text-sm text-muted-foreground text-center">
+                  Start the salt analysis experiment
+                </p>
+                <Button onClick={startRun} size="lg" className="mt-4">
+                  Start Experiment
+                </Button>
+              </div>
+            ) : (
+              <div className="space-y-6">
+                {/* Preliminary Tests */}
+                {stage === "preliminary" && (
+                  <div className="space-y-4">
+                    <h3 className="text-lg font-semibold flex items-center gap-2">
+                      <Droplet className="w-5 h-5" />
+                      Preliminary Tests
+                    </h3>
+
+                    {/* pH Test */}
+                    <div className="space-y-2">
+                      <label className="text-sm font-medium">pH Test</label>
+                      <div className="grid grid-cols-3 gap-2">
+                        <Button
+                          variant={phResult === "Acidic" ? "default" : "outline"}
+                          size="sm"
+                          onClick={() => performPHTest("Acidic")}
+                        >
+                          Acidic
+                        </Button>
+                        <Button
+                          variant={phResult === "Neutral" ? "default" : "outline"}
+                          size="sm"
+                          onClick={() => performPHTest("Neutral")}
+                        >
+                          Neutral
+                        </Button>
+                        <Button
+                          variant={phResult === "Basic" ? "default" : "outline"}
+                          size="sm"
+                          onClick={() => performPHTest("Basic")}
+                        >
+                          Basic
+                        </Button>
+                      </div>
+                    </div>
+
+                    {/* Flame Test */}
+                    <div className="space-y-2">
+                      <label className="text-sm font-medium flex items-center gap-2">
+                        <Flame className="w-4 h-4" />
+                        Flame Test
+                      </label>
+                      <div className="grid grid-cols-2 gap-2">
+                        <Button
+                          variant={flameColor === "Green" ? "default" : "outline"}
+                          size="sm"
+                          onClick={() => performFlameTest("Green")}
+                        >
+                          Green
+                        </Button>
+                        <Button
+                          variant={flameColor === "Brick Red" ? "default" : "outline"}
+                          size="sm"
+                          onClick={() => performFlameTest("Brick Red")}
+                        >
+                          Brick Red
+                        </Button>
+                        <Button
+                          variant={flameColor === "No Color" ? "default" : "outline"}
+                          size="sm"
+                          onClick={() => performFlameTest("No Color")}
+                          className="col-span-2"
+                        >
+                          No Distinct Color
+                        </Button>
+                      </div>
+                    </div>
+                  </div>
+                )}
+
+                {/* Confirmatory Tests */}
+                {(stage === "confirmatory" || stage === "complete") && (
+                  <div className="space-y-6">
+                    {/* Cation Tests */}
+                    <div className="space-y-3">
+                      <h3 className="text-lg font-semibold">Cation Tests</h3>
+                      <div className="space-y-2">
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          className="w-full justify-start"
+                          onClick={() => performCationTest("NaOH", "Reddish-brown precipitate")}
+                        >
+                          Add NaOH (for Fe³⁺)
+                        </Button>
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          className="w-full justify-start"
+                          onClick={() => performCationTest("NaOH", "Blue precipitate")}
+                        >
+                          Add NaOH (for Cu²⁺)
+                        </Button>
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          className="w-full justify-start"
+                          onClick={() => performCationTest("NaOH", "White precipitate")}
+                        >
+                          Add NaOH (for Zn²⁺)
+                        </Button>
+                      </div>
+
+                      <select
+                        className="w-full p-2 rounded border"
+                        value={selectedCation}
+                        onChange={(e) => setSelectedCation(e.target.value)}
+                      >
+                        <option value="">Select Detected Cation</option>
+                        {CATIONS.map(c => (
+                          <option key={c.id} value={c.id}>{c.name}</option>
+                        ))}
+                      </select>
+                    </div>
+
+                    {/* Anion Tests */}
+                    <div className="space-y-3">
+                      <h3 className="text-lg font-semibold">Anion Tests</h3>
+                      <div className="space-y-2">
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          className="w-full justify-start"
+                          onClick={() => performAnionTest("AgNO₃", "White precipitate")}
+                        >
+                          Add AgNO₃ (for Cl⁻)
+                        </Button>
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          className="w-full justify-start"
+                          onClick={() => performAnionTest("BaCl₂", "White precipitate")}
+                        >
+                          Add BaCl₂ (for SO₄²⁻)
+                        </Button>
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          className="w-full justify-start"
+                          onClick={() => performAnionTest("Dilute acid", "Effervescence")}
+                        >
+                          Add Dilute Acid (for CO₃²⁻)
+                        </Button>
+                      </div>
+
+                      <select
+                        className="w-full p-2 rounded border"
+                        value={selectedAnion}
+                        onChange={(e) => setSelectedAnion(e.target.value)}
+                      >
+                        <option value="">Select Detected Anion</option>
+                        {ANIONS.map(a => (
+                          <option key={a.id} value={a.id}>{a.name}</option>
+                        ))}
+                      </select>
+                    </div>
+                  </div>
+                )}
+
+                {/* Complete Stage */}
+                {stage === "complete" && (
+                  <div className="p-4 rounded-lg bg-green-500/10 border border-green-500/30">
+                    <h3 className="font-semibold text-green-600 mb-2">Experiment Complete!</h3>
+                    <p className="text-sm">
+                      Cation: {CATIONS.find(c => c.id === selectedCation)?.name}<br />
+                      Anion: {ANIONS.find(a => a.id === selectedAnion)?.name}
+                    </p>
+                  </div>
+                )}
               </div>
             )}
           </Card>
 
-          {/* Center Panel - Apparatus / Visual */}
-          <Card className="glass-effect p-8 lg:col-span-1 flex flex-col items-center justify-center space-y-8">
-            <div className="text-center space-y-2">
-              <h2 className="text-2xl font-bold">Salt Analysis Setup</h2>
-              <p className="text-sm text-muted-foreground">Add reagent, observe color and reactions</p>
-            </div>
-
-            {/* Visual test tube */}
-            <div className="relative w-44 h-72 rounded-2xl border-4 border-primary/20 overflow-hidden shadow-2xl flex items-end justify-center">
-              <div
-                className="w-28 h-44 rounded-b-lg transition-all duration-500"
-                style={{
-                  background: `linear-gradient(to top, ${color}, #ffffff00)`,
-                  boxShadow: reagent > 0 ? "0 10px 40px rgba(0,0,0,0.08)" : "none",
-                }}
-              />
-            </div>
-
-            {/* Reagent Control */}
-            <div className="w-full space-y-4">
-              <div className="flex justify-between items-center">
-                <span className="text-sm font-medium">Reagent Added (mL)</span>
-                <span className="text-2xl font-bold font-mono text-primary">{reagent.toFixed(2)} mL</span>
-              </div>
-              <Slider
-                value={[reagent]}
-                onValueChange={(v) => setReagent(Number(v[0].toFixed(2)))}
-                min={0}
-                max={5}
-                step={0.01}
-                className="w-full"
-              />
-
-              <div className="text-sm text-muted-foreground text-center">
-                <div>Stage: <span className="font-semibold">{stage}</span></div>
-                <div className="mt-1">pH: <span className="font-mono font-bold">{pH.toFixed(2)}</span></div>
-              </div>
-            </div>
-          </Card>
-
-          {/* Right Panel - Data & Observations */}
+          {/* Right Panel - Observations */}
           <Card className="glass-effect p-6 space-y-6 lg:col-span-1">
-            <h2 className="text-xl font-semibold">Measurements</h2>
+            <h2 className="text-xl font-semibold">Observations</h2>
 
             <div className="space-y-4">
-              <div className="p-4 rounded-lg bg-muted/50 border border-border/50">
-                <div className="text-sm text-muted-foreground mb-1">pH (simulated)</div>
-                <div className="text-3xl font-bold font-mono text-primary">{pH.toFixed(2)}</div>
-              </div>
-
-              <div className="p-4 rounded-lg bg-muted/50 border border-border/50">
-                <div className="text-sm text-muted-foreground mb-1">Reagent Added</div>
-                <div className="text-3xl font-bold font-mono text-secondary">{reagent.toFixed(2)} mL</div>
-              </div>
-
-              <div className="p-4 rounded-lg bg-muted/50 border border-border/50">
-                <div className="text-sm text-muted-foreground mb-1">Status</div>
-                <div className="text-lg font-semibold">
-                  {stage === "idle" && "Ready — add reagent"}
-                  {stage === "preliminary" && "Preliminary changes observed"}
-                  {stage === "flame" && "Flame test active (simulated)"}
-                  {stage === "precipitate" && <span className="text-accent">Precipitation observed</span>}
+              {/* Test Results Summary */}
+              {phResult && (
+                <div className="p-3 rounded-lg bg-muted/50 border">
+                  <div className="text-sm text-muted-foreground">pH Test</div>
+                  <div className="font-semibold">{phResult}</div>
                 </div>
-              </div>
+              )}
+
+              {flameTestDone && (
+                <div className="p-3 rounded-lg bg-muted/50 border">
+                  <div className="text-sm text-muted-foreground">Flame Test</div>
+                  <div className="font-semibold">{flameColor}</div>
+                </div>
+              )}
+
+              {cationTests.length > 0 && (
+                <div className="p-3 rounded-lg bg-muted/50 border">
+                  <div className="text-sm text-muted-foreground mb-2">Cation Tests</div>
+                  {cationTests.map((test, idx) => (
+                    <div key={idx} className="text-xs mb-1">
+                      {test.test}: {test.result}
+                    </div>
+                  ))}
+                </div>
+              )}
+
+              {anionTests.length > 0 && (
+                <div className="p-3 rounded-lg bg-muted/50 border">
+                  <div className="text-sm text-muted-foreground mb-2">Anion Tests</div>
+                  {anionTests.map((test, idx) => (
+                    <div key={idx} className="text-xs mb-1">
+                      {test.test}: {test.result}
+                    </div>
+                  ))}
+                </div>
+              )}
             </div>
 
+            {/* Observations Log */}
             <div>
-              <h3 className="text-lg font-semibold mb-3">Observations</h3>
+              <h3 className="text-lg font-semibold mb-3">Observation Log</h3>
               <div className="space-y-2 max-h-64 overflow-y-auto">
                 {observations.length === 0 ? (
-                  <p className="text-sm text-muted-foreground italic">No observations yet. Add reagent to begin tests.</p>
+                  <p className="text-sm text-muted-foreground italic">No observations yet</p>
                 ) : (
                   observations.map((obs, idx) => (
-                    <div key={idx} className="p-3 rounded-lg bg-muted/30 text-sm">{obs}</div>
+                    <div key={idx} className="p-3 rounded-lg bg-muted/30 text-sm">
+                      {obs}
+                    </div>
                   ))
                 )}
-              </div>
-
-              <div className="flex gap-2 mt-4">
-                <Button
-                  variant="outline"
-                  size="sm"
-                  className="flex-1"
-                  onClick={() => addObservation(`Reagent: ${reagent.toFixed(2)} mL, pH: ${pH.toFixed(2)}, Stage: ${stage}`)}
-                >
-                  Record Current State
-                </Button>
-
-                <Button
-                  size="sm"
-                  onClick={() => {
-                    if (isComplete && inference) {
-                      addObservation(`Inference: ${inference}`);
-                      toast.success("Inference Recorded");
-                    } else {
-                      toast("Add more reagent to get an analysis suggestion", { type: "info" } as any);
-                    }
-                  }}
-                >
-                  Save Inference
-                </Button>
               </div>
             </div>
           </Card>
@@ -253,6 +494,4 @@ const SaltAnalysis = () => {
       </main>
     </div>
   );
-};
-
-export default SaltAnalysis;
+}

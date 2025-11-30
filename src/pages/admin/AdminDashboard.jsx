@@ -3,7 +3,7 @@ import { Button } from "@/components/ui/button";
 import { Link, useNavigate } from "react-router-dom";
 import api from "@/api/client";
 import axios from "axios";
-import { UserDataContext } from '../../context/UserContext';
+import { UserDataContext } from '../../context/UserContext.tsx';
 import { Trash2, PlusCircle } from "lucide-react";
 
 export default function AdminDashboard() {
@@ -66,10 +66,9 @@ export default function AdminDashboard() {
             {/* Experiment Info */}
             <div className="mb-4">
               <h2 className="text-2xl font-bold text-primary mb-2">{exp.title}</h2>
-              <p className="text-sm text-muted-foreground mb-2">{exp.subtitle}</p>
+              <p className="text-sm text-muted-foreground mb-2">{exp.description}</p>
               <div className="flex gap-2 flex-wrap text-xs text-muted-foreground">
                 <span>Created: {new Date(exp.createdAt).toLocaleDateString()}</span>
-                <span>Last Updated: {new Date(exp.updatedAt).toLocaleDateString()}</span>
               </div>
             </div>
 

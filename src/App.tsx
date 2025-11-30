@@ -2,13 +2,9 @@ import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { BrowserRouter, Routes, Route } from "react-router-dom";
+import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 
 import Index from "./pages/Index";
-import Lab from "./pages/lab";
-import Titration from "./pages/lab/titration";
-import Distillation from "./pages/lab/distillation";
-import SaltAnalysis from "./pages/lab/salt-analysis";
 import NotFound from "./pages/NotFound";
 
 import RoleSelection from "./RoleSelection";
@@ -16,9 +12,9 @@ import UserProtectedWrapper from "./UserProtectedWrapper";
 import AdminDashboard from "./pages/admin/AdminDashboard";
 import StudentDashboard from "./pages/student/StudentDashboard";
 import CreateExperiment from './pages/admin/CreateExperiment';
-import PerformExperiment from './pages/student/PerformExperiment';
 import DataInsights from "./pages/student/DataInsights";
 import AdminInsights from "./pages/admin/AdminInsights";
+import PerformExperiment from "./pages/student/PerformExperiment";
 
 const queryClient = new QueryClient();
 
@@ -30,6 +26,7 @@ const App = () => (
       <BrowserRouter>
         <Routes>
           <Route path="/home" element={<Index />} />
+          <Route path="/" element={<Navigate to="/home" replace />} />
           <Route path="/select-role" element={<RoleSelection />} />
 
           {/* Lab Routes */}
@@ -41,11 +38,11 @@ const App = () => (
           {/* Dashboards */}
           <Route path="/admin/dashboard" element={<UserProtectedWrapper role="admin"><AdminDashboard /></UserProtectedWrapper>} />
           <Route path="/student/dashboard" element={<UserProtectedWrapper role="student"><StudentDashboard /></UserProtectedWrapper>} />
-          <Route path="/dashboard/insights/:runId" element={<DataInsights />} />
-          
-          <Route path="/admin/create-experiment" element={<UserProtectedWrapper role="admin"><CreateExperiment /></UserProtectedWrapper>}/>
-          <Route path="/experiment/:id" element={<UserProtectedWrapper><PerformExperiment /></UserProtectedWrapper>} />
+          <Route path="/dashboard/insights/:type/:runId" element={<DataInsights />} />
+
+          <Route path="/admin/create-experiment" element={<UserProtectedWrapper role="admin"><CreateExperiment /></UserProtectedWrapper>} />
           <Route path="/admin/insights/:experimentId" element={<UserProtectedWrapper role="admin"><AdminInsights /></UserProtectedWrapper>} />
+          <Route path="/experiment/:id" element={<UserProtectedWrapper><PerformExperiment /></UserProtectedWrapper>} />
 
           {/* Catch-all */}
           <Route path="*" element={<NotFound />} />
