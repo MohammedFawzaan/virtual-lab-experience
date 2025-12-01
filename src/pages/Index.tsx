@@ -72,11 +72,10 @@ const Index = () => {
                 <div className="flex flex-wrap gap-4">
                   <Button
                     size="lg"
-                    className="group bg-gradient-to-r from-primary to-secondary hover:shadow-lg transition-all duration-300"
+                    className="group bg-gradient-to-r from-primary to-secondary active:shadow-lg transition-all duration-300"
                     onMouseEnter={() => setIsHoveringCTA(true)}
                     onMouseLeave={() => setIsHoveringCTA(false)}
-                    onClick={handleClick}
-                  >
+                    onClick={handleClick}>
                     <Play className="w-5 h-5 mr-2" />
                     Login to Start Your First Experiment
                     <ArrowRight
@@ -104,7 +103,7 @@ const Index = () => {
 
               {/* Right Visual */}
               <div className="relative">
-                <div className="glass-effect rounded-3xl p-8 animate-float">
+                <div className="glass-effect rounded-3xl p-6 animate-float">
                   <div className="space-y-6">
                     {/* Virtual Lab Equipment Preview */}
                     <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-4 lg:grid-cols-4 gap-6 place-items-center">
@@ -303,6 +302,7 @@ const Index = () => {
             <p className="text-xl text-muted-foreground mb-8">
               Start with our interactive titration experiment and discover true hands-on learning.
             </p>
+            <p className="font-bold">Made by Mohammed Fawzaan with ❤️.</p>
           </div>
         </div>
       </section>
