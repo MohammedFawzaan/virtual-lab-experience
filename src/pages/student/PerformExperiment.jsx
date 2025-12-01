@@ -14,13 +14,16 @@ export default function PerformExperiment() {
     api.get(`/api/experiments/${id}`).then((res) => setExp(res.data));
   }, [id]);
 
-  if (!exp) return <p className="text-center text-xl">Loading...</p>;
+  if (!exp)
+    return <div className="flex items-center justify-center h-[60vh]">
+      <div className="w-10 h-10 border-4 border-primary/40 border-t-primary rounded-full animate-spin" />
+    </div>;
 
   return (
     <div>
       {exp.type === "titration" && <Titration experimentId={exp._id} experimentTitle={exp.title} />}
-      {exp.type === "distillation" && <Distillation experimentId={exp._id} />}
-      {exp.type === "salt-analysis" && <SaltAnalysis experimentId={exp._id} />}
+      {exp.type === "distillation" && <Distillation experimentId={exp._id} experimentTitle={exp.title} />}
+      {exp.type === "salt-analysis" && <SaltAnalysis experimentId={exp._id} experimentTitle={exp.title} />}
     </div>
   );
 }

@@ -38,11 +38,11 @@ const App = () => (
           {/* Dashboards */}
           <Route path="/admin/dashboard" element={<UserProtectedWrapper role="admin"><AdminDashboard /></UserProtectedWrapper>} />
           <Route path="/student/dashboard" element={<UserProtectedWrapper role="student"><StudentDashboard /></UserProtectedWrapper>} />
-          <Route path="/dashboard/insights/:type/:runId" element={<DataInsights />} />
-
           <Route path="/admin/create-experiment" element={<UserProtectedWrapper role="admin"><CreateExperiment /></UserProtectedWrapper>} />
+
           <Route path="/admin/insights/:experimentId" element={<UserProtectedWrapper role="admin"><AdminInsights /></UserProtectedWrapper>} />
-          <Route path="/experiment/:id" element={<UserProtectedWrapper><PerformExperiment /></UserProtectedWrapper>} />
+          <Route path="/dashboard/insights/:type/:runId" element={<UserProtectedWrapper role="student"><DataInsights /></UserProtectedWrapper>} />
+          <Route path="/experiment/:id" element={<UserProtectedWrapper role="student"><PerformExperiment /></UserProtectedWrapper>} />
 
           {/* Catch-all */}
           <Route path="*" element={<NotFound />} />

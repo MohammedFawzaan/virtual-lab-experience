@@ -23,7 +23,10 @@ export default function DataInsights() {
     }
   }, [runId, type]);
 
-  if (!run) return <div className="p-10">Loading...</div>;
+  if (!run)
+    return <div className="flex items-center justify-center h-[60vh]">
+      <div className="w-10 h-10 border-4 border-primary/40 border-t-primary rounded-full animate-spin" />
+    </div>;
 
   return (
     <div className="min-h-screen p-10 bg-muted/10">

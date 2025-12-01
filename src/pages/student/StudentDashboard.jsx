@@ -3,6 +3,7 @@ import { useNavigate, Link } from "react-router-dom";
 import { UserDataContext } from '../../context/UserContext.tsx';
 import api from "@/api/client";
 import { Button } from "@/components/ui/button";
+import { toast } from "@/components/ui/use-toast";
 
 export default function StudentDashboard() {
   const [experiments, setExperiments] = useState([]);
@@ -68,6 +69,11 @@ export default function StudentDashboard() {
       await api.post("/api/logout", {}, { withCredentials: true });
       setUser({ authenticated: false });
       navigate('/home');
+      toast({
+        title: 'Logged Out',
+        duration: 1000,
+        variant: 'destructive'
+      });
     } catch (error) {
       console.log("Logout error", error);
     }
@@ -78,7 +84,7 @@ export default function StudentDashboard() {
       {/* Header */}
       <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-6 gap-4">
         <div>
-          <h1 className="text-4xl font-extrabold text-gradient mb-2">
+          <h1 className="text-3xl font-extrabold text-gradient mb-2">
             Welcome, {user?.user?.firstname + " " + user?.user?.lastname}!
           </h1>
           <p className="text-muted-foreground">Explore and perform the available experiments</p>

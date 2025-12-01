@@ -1,25 +1,32 @@
-import { useState, useContext } from "react";
+import { useState, useContext, useEffect } from "react";
 import axios from "axios";
 import { UserDataContext } from "./context/UserContext.tsx";
 import { useNavigate } from "react-router-dom";
-import { Button } from "@/components/ui/button";
+import { toast } from "@/components/ui/use-toast";
 
 const RoleSelection = () => {
   const { user, setUser } = useContext(UserDataContext);
   const navigate = useNavigate();
   const [loading, setLoading] = useState(false);
+  
+  useEffect(() => {
+    if(user?.authenticated === true)
+      navigate('/home');
+    toast({
+      title: 'Logged In!',
+      duration: 1000
+    });
+  });
 
   const selectRole = async (role) => {
     if (!user) return;
     setLoading(true);
-
     try {
       const res = await axios.post(
         `${import.meta.env.VITE_BASE_URL}/api/set-role`,
         { userId: user.user._id, role },
         { withCredentials: true }
       );
-
       // Update user in context
       setUser({ ...user, user: res.data.user });
       navigate("/home"); // redirect after selection
@@ -39,8 +46,7 @@ const RoleSelection = () => {
           onClick={() => selectRole("student")}
           disabled={loading}
           className="h-40 w-40 text-xl rounded-2xl shadow-md flex flex-col items-center justify-center
-                 transition-all duration-300 hover:scale-105 active:scale-95"
-        >
+                 transition-all duration-300 hover:scale-105 active:scale-95">
           🎓 Student
         </Button>
 

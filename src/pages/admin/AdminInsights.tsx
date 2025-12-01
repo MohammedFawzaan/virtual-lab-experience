@@ -36,14 +36,17 @@ export default function AdminInsights() {
 
       await api.delete(endpoint);
       setRuns(runs.filter((r: any) => r._id !== runId));
-      toast.success("Run deleted successfully");
+      toast.success("Exp deleted successfully");
     } catch (error) {
       console.error(error);
       toast.error("Failed to delete run");
     }
   };
 
-  if (loading) return <div className="p-10">Loading...</div>;
+  if (loading)
+    return <div className="flex items-center justify-center h-[60vh]">
+      <div className="w-10 h-10 border-4 border-primary/40 border-t-primary rounded-full animate-spin" />
+    </div>;
   if (runs.length === 0) return <div className="p-10">No student has performed this experiment yet.</div>;
 
   return (
@@ -62,7 +65,7 @@ export default function AdminInsights() {
           <Card key={run._id} className="p-4">
             <div className="flex justify-between items-start">
               <h2 className="font-bold text-lg">
-                {run.userId.firstname} {run.userId.lastname}
+                Performed by {run.userId.firstname} {run.userId.lastname}
               </h2>
               <Button
                 variant="destructive"

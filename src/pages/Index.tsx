@@ -3,7 +3,7 @@ import { useContext, useEffect, useState } from "react";
 import { UserDataContext } from "../context/UserContext";
 import { Button } from "@/components/ui/button";
 import { BeakerIcon, FlaskConical, Microscope, ArrowRight, Play, FlaskRound } from "lucide-react";
-import { Link } from "react-router-dom";
+import { toast } from "@/components/ui/use-toast";
 
 const Index = () => {
   const [isHoveringCTA, setIsHoveringCTA] = useState(false);
@@ -19,13 +19,17 @@ const Index = () => {
       } else {
         navigate("/select-role");
       }
+      toast({
+        title: 'Logged In!',
+        duration: 1000,
+        variant: 'default'
+      });
     }
   }, [user]);
 
   const handleClick = () => {
     window.open(`${import.meta.env.VITE_BASE_URL}/api/auth/google`, "_self");
   }
-
 
   return (
     <div className="mt-6 min-h-screen bg-gradient-to-b from-background to-muted/30">
@@ -40,7 +44,7 @@ const Index = () => {
                   Hi {user?.user?.firstname} {user?.user?.lastname} 👋 {user?.user?.role}
                 </h1>
               ) : (
-                <h1 className="text-3xl font-extrabold tracking-tight bg-gradient-to-r from-primary to-secondary text-transparent bg-clip-text drop-shadow-sm">
+                <h1 className="text-3xl sm:text-xl md:text-3xl lg:text-4xl font-extrabold tracking-tight bg-gradient-to-r from-primary to-secondary text-transparent bg-clip-text drop-shadow-sm">
                   Welcome To LabXperience ✨
                 </h1>
               )}
@@ -53,7 +57,7 @@ const Index = () => {
                   <span className="text-sm font-medium text-primary">Experience-Based Learning Platform</span>
                 </div>
 
-                <h1 className="text-5xl lg:text-6xl font-bold leading-tight">
+                <h1 className="text-3xl sm:text-2xl md:text-4xl lg:text-6xl font-bold leading-tight">
                   Transform Lab Learning with{" "}
                   <span className="text-gradient">Virtual Hands-On</span>{" "}
                   Experience
@@ -103,7 +107,7 @@ const Index = () => {
                 <div className="glass-effect rounded-3xl p-8 animate-float">
                   <div className="space-y-6">
                     {/* Virtual Lab Equipment Preview */}
-                    <div className="flex justify-center gap-6">
+                    <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-4 lg:grid-cols-4 gap-6 place-items-center">
                       {/* Titration Card */}
                       <div className="relative group">
                         <div className="absolute inset-0 bg-gradient-to-br from-primary/20 to-secondary/20 rounded-2xl blur-xl group-hover:blur-2xl transition-all" />
