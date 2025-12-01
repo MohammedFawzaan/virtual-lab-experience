@@ -56,7 +56,7 @@ const RoleSelection = () => {
           disabled={loading}
           className="h-44 sm:h-52 w-44 sm:w-52 text-2xl sm:text-3xl rounded-3xl shadow-lg flex flex-col items-center justify-center
                  bg-gradient-to-tr from-indigo-500 via-purple-500 to-pink-500 text-white
-                 hover:scale-105 active:scale-95 transition-transform duration-300">
+                 hover:scale-105 transition-transform duration-300">
           🎓 Student
         </Button>
         <Button
@@ -65,7 +65,7 @@ const RoleSelection = () => {
           variant="secondary"
           className="h-44 sm:h-52 w-44 sm:w-52 text-2xl sm:text-3xl rounded-3xl shadow-lg flex flex-col items-center justify-center
                  bg-gradient-to-tr from-green-400 via-teal-400 to-cyan-400 text-white
-                 hover:scale-105 active:scale-95 transition-transform duration-300">
+                 hover:scale-105 transition-transform duration-300">
           🛠️ Admin
         </Button>
       </div>
