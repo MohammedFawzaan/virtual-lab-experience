@@ -128,14 +128,14 @@ export default function StudentDashboard() {
           return (
             <div
               key={exp._id}
-              className="bg-white rounded-3xl shadow-lg border border-muted/20 p-6 flex flex-col justify-between hover:shadow-2xl transition-all duration-300"
-            >
+              className="bg-white rounded-3xl shadow-lg border border-muted/20 p-6 flex flex-col justify-between hover:shadow-2xl transition-all duration-300">
               <div className="mb-4">
                 <h2 className="capitalize text-2xl font-bold text-primary mb-2">{exp.title}</h2>
-                <p className="text-sm text-muted-foreground mb-2">Description: {exp?.description}</p>
-                <p className="text-sm text-muted-foreground mb-2">Created By: {exp.createdBy.firstname + " " + exp.createdBy.lastname}</p>
+                <p className="text-sm text-muted-foreground mb-2">Experiment type: {exp?.type}</p>
+                <p className="text-sm text-muted-foreground mb-2">{exp?.description}</p>
+                <p className="text-sm text-muted-foreground mb-2">Created by admin: {exp.createdBy.firstname + " " + exp.createdBy.lastname}</p>
                 <div className="text-xs text-muted-foreground">
-                  Created: {new Date(exp.createdAt).toLocaleDateString()}
+                  Created at: {new Date(exp.createdAt).toLocaleDateString()}
                 </div>
               </div>
 

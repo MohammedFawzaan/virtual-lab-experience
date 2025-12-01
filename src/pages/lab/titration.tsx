@@ -16,6 +16,7 @@ type Props = {
 const Titration: React.FC<Props> = ({ experimentId: propExperimentId, experimentTitle: propExperimentTitle }) => {
   const params = useParams();
   const experimentId = propExperimentId || (params as any).id || "";
+
   const [runId, setRunId] = useState<string | null>(null);
 
   const navigate = useNavigate();
@@ -30,22 +31,26 @@ const Titration: React.FC<Props> = ({ experimentId: propExperimentId, experiment
   const hasFinalizedRef = useRef(false);
   const [experimentTitle, setExperimentTitle] = useState(propExperimentTitle || "Titration");
 
-  // Start a run
   useEffect(() => {
-    let mounted = true;
-    const start = async () => {
-      try {
-        const res = await api.post("/api/titration", { experimentId });
-        if (!mounted) return;
-        setRunId(res.data._id);
-        toast.success("Titration started");
-      } catch (error) {
-        toast.error("Failed to start run");
+    const handleBack = async () => {
+      if (!isComplete) {
+        await resetExperiment();
       }
     };
-    if (experimentId) start();
-    return () => { mounted = false; };
-  }, [experimentId]);
+    window.addEventListener("popstate", handleBack);
+    return () => window.removeEventListener("popstate", handleBack);
+  }, [isComplete, runId]);
+
+  // Start a run
+  const start = async () => {
+    try {
+      const res = await api.post("/api/titration", { experimentId });
+      setRunId(res.data._id);
+      toast.success("Titration started");
+    } catch (error) {
+      toast.error("Failed to start run");
+    }
+  };
 
   // For adding messages locally
   const addObservationLocal = (msg: string) => {
@@ -57,7 +62,6 @@ const Titration: React.FC<Props> = ({ experimentId: propExperimentId, experiment
   const handleVolumeChange = (newVolume: number[]) => {
     const vol = newVolume[0];
     setVolume(vol);
-
     if (vol < 20) {
       setPH(1.2 + vol * 0.15);
       setColor("#ff6b6b");
@@ -68,8 +72,6 @@ const Titration: React.FC<Props> = ({ experimentId: propExperimentId, experiment
       setPH(7 + (vol - 25) * 0.2);
       setColor("#ffd6e8");
       if (vol >= 24.5 && vol <= 25.5) {
-        // Just notify, do not auto-complete
-        // setIsComplete(true); <-- REMOVED
         addObservationLocal(`Endpoint reached at ${vol.toFixed(1)} mL - Color changed to pink!`);
         toast.success("Endpoint detected!");
       }
@@ -100,7 +102,6 @@ const Titration: React.FC<Props> = ({ experimentId: propExperimentId, experiment
     }
   };
 
-  // FIXED FINALIZE FUNCTION
   const finalize = async () => {
     if (!runId) return toast.error("Run not initialized");
     if (hasFinalizedRef.current) return;
@@ -133,37 +134,30 @@ const Titration: React.FC<Props> = ({ experimentId: propExperimentId, experiment
     }
   };
 
-  // Auto finalize on endpoint
-  // Auto finalize removed to allow manual completion
-  // useEffect(() => {
-  //   if (isComplete) {
-  //     finalize();
-  //     navigate('/student/dashboard');
-  //   }
-  // }, [isComplete]);
-
-  // Reset - preserves completed data in DB
+  // Reset
   const resetExperiment = async () => {
-    // Reset UI state only - don't delete completed run from database
-    setVolume(0);
-    setPH(1.2);
-    setColor("#ff6b6b");
-    setIsComplete(false);
-    setObservations([]);
-    setRunId(null);
-    hasFinalizedRef.current = false;
-
-    toast.info("Experiment reset");
-
-    // Start new run
     try {
-      if (experimentId) {
-        const res = await api.post("/api/titration", { experimentId });
-        setRunId(res.data._id);
-      }
-    } catch (error) {
-      toast.error("Failed to start new run");
+      if (runId) await api.delete(`/api/titration/${runId}`);
+    } catch (err) {
+      console.log(err);
+    } finally {
+      setVolume(0);
+      setPH(1.2);
+      setColor("#ff6b6b");
+      setIsComplete(false);
+      setObservations([]);
+      setRunId(null);
+      hasFinalizedRef.current = false;
+      toast.info("Experiment reset");
     }
+  };
+
+  const backToDashboard = async () => {
+    if (!isComplete) {
+      if (!confirm("Are you sure? This won't save your experiment.")) return;
+      await resetExperiment();
+    }
+    navigate('/student/dashboard');
   };
 
   return (
@@ -172,24 +166,34 @@ const Titration: React.FC<Props> = ({ experimentId: propExperimentId, experiment
       {/* HEADER */}
       <header className="border-b border-border/50 backdrop-blur-sm bg-background/80 sticky top-0 z-50">
         <div className="container mx-auto px-4 py-4 flex items-center justify-between">
-          <Link to="/student/dashboard">
-            <Button variant="ghost" size="sm">
-              <ArrowLeft className="w-4 h-4 mr-2" /> Back to Dashboard
-            </Button>
-          </Link>
-
-          <h1 className="capitalize text-xl font-semibold">{experimentTitle}</h1>
-
+          <Button variant="ghost" size="sm" onClick={backToDashboard} className="flex items-center gap-2">
+            <ArrowLeft className="w-4 h-4" />
+            <span className="hidden md:inline">Back to Dashboard</span>
+          </Button>
+          <h1 className="capitalize text-lg md:text-xl font-semibold text-center flex-1">
+            {experimentTitle}
+          </h1>
           <div className="flex gap-2">
-            <Button variant="outline" size="sm" onClick={resetExperiment}>
-              <RotateCcw className="w-4 h-4 mr-2" /> Reset
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={resetExperiment}
+              disabled={isComplete}
+              className="flex items-center gap-2">
+              <RotateCcw className="w-4 h-4" />
+              <span className="hidden md:inline">Reset</span>
             </Button>
-
-            {/* NEW MANUAL COMPLETE BUTTON */}
-            <Button size="sm" onClick={finalize} disabled={isSaving || !runId || isComplete}>
-              <CheckCircle className="w-4 h-4 mr-2" />
-              Complete Experiment
-            </Button>
+            {runId ? (
+              <Button size="sm" onClick={finalize} className="flex items-center gap-2">
+                <CheckCircle className="w-4 h-4 hidden md:inline" />
+                <span>Complete</span>
+              </Button>
+            ) : (
+              <Button size="sm" onClick={start} className="flex items-center gap-2">
+                <CheckCircle className="w-4 h-4 hidden md:inline" />
+                <span>Start</span>
+              </Button>
+            )}
           </div>
         </div>
       </header>
@@ -342,15 +346,13 @@ const Titration: React.FC<Props> = ({ experimentId: propExperimentId, experiment
               </div>
 
               <div className="mt-4 space-y-2">
-                <Button variant="outline" size="sm" className="w-full" onClick={recordCurrentState} disabled={isSaving || !runId}>
+                <Button variant="outline" size="sm" className="w-full" onClick={recordCurrentState} disabled={!runId || isComplete}>
                   Record Current State
                 </Button>
 
                 <Button size="sm" className="w-full" onClick={() => {
-                  // quick local note + backend save
                   addObservationLocal(`Quick note at ${volume.toFixed(1)} mL, pH ${pH.toFixed(2)}`);
-                  recordCurrentState();
-                }}>
+                }} disabled={!runId || isComplete}>
                   Quick Note
                 </Button>
               </div>

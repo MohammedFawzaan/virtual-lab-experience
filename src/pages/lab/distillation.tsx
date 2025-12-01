@@ -32,22 +32,26 @@ const Distillation: React.FC<Props> = ({ experimentId: propExperimentId, experim
   const hasFinalizedRef = useRef(false);
   const [experimentTitle, setExperimentTitle] = useState(propExperimentTitle || "Distillation");
 
-  // Start a run
   useEffect(() => {
-    let mounted = true;
-    const start = async () => {
-      try {
-        const res = await api.post("/api/distillation", { experimentId });
-        if (!mounted) return;
-        setRunId(res.data._id);
-        toast.success("Distillation started");
-      } catch (error) {
-        toast.error("Failed to start run");
+    const handleBack = async () => {
+      if (!isComplete) {
+        await resetExperiment();
       }
     };
-    if (experimentId) start();
-    return () => { mounted = false; };
-  }, [experimentId]);
+    window.addEventListener("popstate", handleBack);
+    return () => window.removeEventListener("popstate", handleBack);
+  }, [isComplete, runId]);
+
+  // Start a run
+  const start = async () => {
+    try {
+      const res = await api.post("/api/distillation", { experimentId });
+      setRunId(res.data._id);
+      toast.success("Distillation started");
+    } catch (error) {
+      toast.error("Failed to start run");
+    }
+  }
 
   // For adding messages locally
   const addObservationLocal = (msg: string) => {
@@ -133,20 +137,13 @@ const Distillation: React.FC<Props> = ({ experimentId: propExperimentId, experim
     }
   };
 
-  // Auto finalize on completion
-  useEffect(() => {
-    if (isComplete) {
-      finalize();
-      // navigate('/student/dashboard'); // Removed - show completion UI instead
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [isComplete]);
-
   // Reset
   const resetExperiment = async () => {
     try {
-      // if (runId) await api.delete(`/api/distillation/${runId}`); // Removed - preserve data in DB
-    } catch { }
+      if (runId) await api.delete(`/api/distillation/${runId}`);
+    } catch (err) {
+      console.log(err);
+    }
     finally {
       setTemperature(20);
       setVaporRate(0);
@@ -158,13 +155,15 @@ const Distillation: React.FC<Props> = ({ experimentId: propExperimentId, experim
       hasFinalizedRef.current = false;
 
       toast.info("Experiment reset");
-
-      // restart run
-      if (experimentId) {
-        const res = await api.post("/api/distillation", { experimentId });
-        setRunId(res.data._id);
-      }
     }
+  };
+
+  const backToDashboard = async () => {
+    if (!isComplete) {
+      if (!confirm("Are you sure? This won't save your experiment.")) return;
+      await resetExperiment();
+    }
+    navigate('/student/dashboard');
   };
 
   return (
@@ -173,27 +172,43 @@ const Distillation: React.FC<Props> = ({ experimentId: propExperimentId, experim
       {/* HEADER */}
       <header className="border-b border-border/50 backdrop-blur-sm bg-background/80 sticky top-0 z-50">
         <div className="container mx-auto px-4 py-4 flex items-center justify-between">
-          <Link to="/student/dashboard">
-            <Button variant="ghost" size="sm">
-              <ArrowLeft className="w-4 h-4 mr-2" /> Back to Dashboard
-            </Button>
-          </Link>
-
-          <h1 className="capitalize text-xl font-semibold">{experimentTitle}</h1>
-
+          {/* BACK BUTTON */}
+          <Button variant="ghost" size="sm" onClick={backToDashboard} className="flex items-center gap-2">
+            <ArrowLeft className="w-4 h-4" />
+            <span className="hidden md:inline">Back to Dashboard</span>
+          </Button>
+          {/* TITLE */}
+          <h1 className="capitalize text-lg md:text-xl font-semibold text-center flex-1">
+            {experimentTitle}
+          </h1>
+          {/* ACTION BUTTONS */}
           <div className="flex gap-2">
-            <Button variant="outline" size="sm" onClick={resetExperiment}>
-              <RotateCcw className="w-4 h-4 mr-2" /> Reset
+            {/* RESET */}
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={resetExperiment}
+              disabled={isComplete}
+              className="flex items-center gap-2">
+              <RotateCcw className="w-4 h-4" />
+              <span className="hidden md:inline">Reset</span>
             </Button>
-
-            {/* NEW MANUAL COMPLETE BUTTON */}
-            <Button size="sm" onClick={finalize} disabled={isSaving || !runId || isComplete}>
-              <CheckCircle className="w-4 h-4 mr-2" />
-              Complete Experiment
-            </Button>
+            {/* START / COMPLETE */}
+            {runId ? (
+              <Button size="sm" onClick={finalize} className="flex items-center gap-2">
+                <CheckCircle className="w-4 h-4 hidden md:inline" />
+                <span>Complete Experiment</span>
+              </Button>
+            ) : (
+              <Button size="sm" onClick={start} className="flex items-center gap-2">
+                <CheckCircle className="w-4 h-4 hidden md:inline" />
+                <span>Start Experiment</span>
+              </Button>
+            )}
           </div>
         </div>
       </header>
+
 
       {/* Main */}
       <main className="container mx-auto px-4 py-8">
@@ -313,15 +328,13 @@ const Distillation: React.FC<Props> = ({ experimentId: propExperimentId, experim
               </div>
 
               <div className="mt-4 space-y-2">
-                <Button variant="outline" size="sm" className="w-full" onClick={recordCurrentState} disabled={isSaving || !runId}>
+                <Button variant="outline" size="sm" className="w-full" onClick={recordCurrentState} disabled={isComplete || !runId}>
                   Record Current State
                 </Button>
 
                 <Button size="sm" className="w-full" onClick={() => {
-                  // quick local note + backend save
                   addObservationLocal(`Quick note at ${temperature}°C`);
-                  recordCurrentState();
-                }}>
+                }} disabled={!runId || isComplete}>
                   Quick Note
                 </Button>
               </div>

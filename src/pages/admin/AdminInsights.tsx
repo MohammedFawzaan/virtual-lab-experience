@@ -47,7 +47,7 @@ export default function AdminInsights() {
     return <div className="flex items-center justify-center h-[60vh]">
       <div className="w-10 h-10 border-4 border-primary/40 border-t-primary rounded-full animate-spin" />
     </div>;
-  if (runs.length === 0) return <div className="p-10">No student has performed this experiment yet.</div>;
+  if (runs.length === 0) return <div className="p-10">No student has performed this experiment yet, you can login as a student and perform this exp.</div>;
 
   return (
     <div className="p-10">

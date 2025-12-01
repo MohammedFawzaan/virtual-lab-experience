@@ -25,7 +25,12 @@ const ANIONS = [
   { id: "CO32-", name: "CO₃²⁻ (Carbonate)", test: "Dilute acid", result: "Effervescence" },
 ];
 
-export default function SaltAnalysis() {
+type Props = {
+  experimentId?: string;
+  experimentTitle?: string;
+};
+
+const SaltAnalysis: React.FC<Props> = ({ experimentId: propExperimentId, experimentTitle: propExperimentTitle }) => {
   const { id: experimentId } = useParams();
   const [runId, setRunId] = useState<string | null>(null);
   const [isRunning, setIsRunning] = useState(false);
@@ -164,19 +169,25 @@ export default function SaltAnalysis() {
     }
   };
 
-  const resetExperiment = () => {
-    setRunId(null);
-    setIsRunning(false);
-    setStage("idle");
-    setPhResult("");
-    setFlameTestDone(false);
-    setFlameColor("");
-    setSelectedCation("");
-    setSelectedAnion("");
-    setCationTests([]);
-    setAnionTests([]);
-    setObservations([]);
-    toast.info("Experiment Reset");
+  const resetExperiment = async () => {
+    try {
+      if (runId) await api.delete(`/api/saltanalysis/${runId}`);
+    } catch (err) {
+      console.log(err);
+    } finally {
+      setRunId(null);
+      setIsRunning(false);
+      setStage("idle");
+      setPhResult("");
+      setFlameTestDone(false);
+      setFlameColor("");
+      setSelectedCation("");
+      setSelectedAnion("");
+      setCationTests([]);
+      setAnionTests([]);
+      setObservations([]);
+      toast.info("Experiment Reset");
+    }
   };
 
   return (
@@ -185,25 +196,42 @@ export default function SaltAnalysis() {
       <header className="border-b border-border/50 backdrop-blur-sm bg-background/80 sticky top-0 z-50">
         <div className="container mx-auto px-4 py-4">
           <div className="flex items-center justify-between">
+
+            {/* BACK BUTTON */}
             <Link to="/student/dashboard">
-              <Button variant="ghost" size="sm">
-                <ArrowLeft className="w-4 h-4 mr-2" /> Back to Dashboard
+              <Button variant="ghost" size="sm" className="flex items-center gap-2">
+                <ArrowLeft className="w-4 h-4" />
+                <span className="hidden md:inline">Back to Dashboard</span>
               </Button>
             </Link>
-            <h1 className="text-xl font-semibold">Salt Analysis — Qualitative Analysis</h1>
+
+            {/* TITLE */}
+            <h1 className="text-lg md:text-xl font-semibold text-center flex-1">
+              {propExperimentTitle}
+            </h1>
+
+            {/* ACTION BUTTONS */}
             <div className="flex gap-2">
               <Button variant="outline" size="sm" onClick={resetExperiment}>
-                <RotateCcw className="w-4 h-4 mr-2" /> Reset
+                <RotateCcw className="w-4 h-4 mr-2" />
+                <span className="hidden md:inline">Reset</span>
               </Button>
+
               {isRunning && stage !== "complete" && (
-                <Button size="sm" onClick={completeExperiment} disabled={!selectedCation || !selectedAnion}>
-                  <CheckCircle2 className="w-4 h-4 mr-2" /> Complete
+                <Button
+                  size="sm"
+                  onClick={completeExperiment}
+                  disabled={!selectedCation || !selectedAnion}
+                >
+                  <CheckCircle2 className="w-4 h-4 mr-2" />
+                  <span className="hidden md:inline">Complete</span>
                 </Button>
               )}
             </div>
           </div>
         </div>
       </header>
+
 
       {/* Main */}
       <main className="container mx-auto px-4 py-8">
@@ -495,3 +523,6 @@ export default function SaltAnalysis() {
     </div>
   );
 }
+
+
+export default SaltAnalysis;

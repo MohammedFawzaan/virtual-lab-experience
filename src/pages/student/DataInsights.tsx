@@ -31,7 +31,7 @@ export default function DataInsights() {
   return (
     <div className="min-h-screen p-10 bg-muted/10">
       <div className="flex justify-between items-center mb-8">
-        <h1 className="text-3xl font-bold">{run.experimentTitle} — Data Insights Performed by You</h1>
+        <h1 className="text-2xl lg:text-3xl sm:text-xl font-bold">{run.experimentTitle} — Performed by You</h1>
         <Link to="/student/dashboard">
           <Button>Back to Dashboard</Button>
         </Link>
