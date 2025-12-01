@@ -13,7 +13,7 @@ export default function AdminDashboard() {
   const { user, setUser } = useContext(UserDataContext);
 
   useEffect(() => {
-    api.get("/api/experiments").then((res) => setExperiments(res.data));
+    api.get("/api/experiments/admin").then((res) => setExperiments(res.data));
   }, []);
 
   const onLogout = async () => {
@@ -23,8 +23,7 @@ export default function AdminDashboard() {
       navigate('/home');
       toast({
         title: 'Logged out!',
-        duration: 1000,
-        variant: 'destructive'
+        duration: 1000
       });
     } catch (error) {
       console.log("Logout error", error);
@@ -76,7 +75,7 @@ export default function AdminDashboard() {
               <p className="text-sm text-muted-foreground mb-2">Experiment type: {exp.type}</p>
               <p className="text-sm text-muted-foreground mb-2">{exp.description}</p>
               <div className="flex gap-2 flex-wrap text-xs text-muted-foreground">
-                <span>Created by: {exp.createdBy?.firstname}</span>
+                <span>Created by: {exp.createdBy?.firstname + " " + exp.createdBy?.lastname}(you)</span>
                 <span>Created at: {new Date(exp.createdAt) .toLocaleDateString()}</span>
               </div>
             </div>

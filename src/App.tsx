@@ -7,7 +7,7 @@ import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import Index from "./pages/Index";
 import NotFound from "./pages/NotFound";
 
-import RoleSelection from "./RoleSelection";
+import RoleSelection from "./pages/RoleSelection";
 import UserProtectedWrapper from "./UserProtectedWrapper";
 import AdminDashboard from "./pages/admin/AdminDashboard";
 import StudentDashboard from "./pages/student/StudentDashboard";

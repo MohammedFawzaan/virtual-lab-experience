@@ -71,8 +71,7 @@ export default function StudentDashboard() {
       navigate('/home');
       toast({
         title: 'Logged Out',
-        duration: 1000,
-        variant: 'destructive'
+        duration: 1000
       });
     } catch (error) {
       console.log("Logout error", error);
@@ -133,7 +132,7 @@ export default function StudentDashboard() {
                 <h2 className="capitalize text-2xl font-bold text-primary mb-2">{exp.title}</h2>
                 <p className="text-sm text-muted-foreground mb-2">Experiment type: {exp?.type}</p>
                 <p className="text-sm text-muted-foreground mb-2">{exp?.description}</p>
-                <p className="text-sm text-muted-foreground mb-2">Created by admin: {exp.createdBy.firstname + " " + exp.createdBy.lastname}</p>
+                <p className="text-sm text-muted-foreground mb-2">Created by admin: {exp?.createdBy?.firstname + " " + exp?.createdBy?.lastname}</p>
                 <div className="text-xs text-muted-foreground">
                   Created at: {new Date(exp.createdAt).toLocaleDateString()}
                 </div>
