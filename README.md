@@ -1,73 +1,100 @@
-# Welcome to your Lovable project
+<!DOCTYPE html>
+<html lang="en">
+<head>
+</head>
+<body>
+<p align="center"><img src="/public/logo.jpg" alt="icon" height=120/></p>
+<h1 align="center"> Virtual Chemistry Lab </h1>
+<p>
+  This is the <strong>frontend</strong> of the Virtual Chemistry Lab — a fully interactive, modern web application built using <strong>React + Vite + Tailwind + ShadCN UI</strong>. Students can perform chemistry experiments such as distillation, titration, salt-analysis virtually, while faculty/admin can create experiments and view their student insights.
+</p>
 
-## Project info
+<hr />
 
-**URL**: https://lovable.dev/projects/4d1c0911-ee28-416b-9f5a-d08f53fcf64a
+<h2>🔗 Live Demo - Deployed on Vercel</h2>
+<p>
+  <a href="https://virtual-lab-experience.vercel.app" target="_blank">
+    👉 Click here to view the live app
+  </a>
+</p>
 
-## How can I edit this code?
+<hr />
 
-There are several ways of editing your application.
+<h2>✨ Features</h2>
+<ul>
+  <li>Chemistry experiments included such as distillation, titration, salt-analysis</li>
+  <li>Beautiful and responsive UI</li>
+  <li>Role-based navigation (Student / Admin)</li>
+  <li>Google login using JWT and passport.js</li>
+  <li>Live experiment simulations</li>
+  <li>Dashboard for data insights</li>
+  <li>Reusable UI components (ShadCN)</li>
+  <li>Protected frontend routes</li>
+</ul>
 
-**Use Lovable**
+<hr />
 
-Simply visit the [Lovable Project](https://lovable.dev/projects/4d1c0911-ee28-416b-9f5a-d08f53fcf64a) and start prompting.
+<h2>📁 Project Structure</h2>
+<pre>
+src/
+├── components/        # Reusable UI Components
+├── pages/             # Page-level components
+├── hooks/             # Custom React Hooks
+├── context/           # Global state providers
+├── lib/               # API handlers & utilities
+└── main.jsx           # App entrypoint
+</pre>
 
-Changes made via Lovable will be committed automatically to this repo.
+<hr />
 
-**Use your preferred IDE**
+<h2>🛠️ Tech Stack</h2>
+<ul>
+  <li><strong>React</strong> – UI framework</li>
+  <li><strong>Vite</strong> – Lightning-fast bundler</li>
+  <li><strong>Tailwind CSS</strong> – Utility-first styling</li>
+  <li><strong>ShadCN UI</strong> – Modern component library</li>
+  <li><strong>Axios</strong> – API requests</li>
+  <li><strong>React Router</strong> – Navigation</li>
+</ul>
 
-If you want to work locally using your own IDE, you can clone this repo and push changes. Pushed changes will also be reflected in Lovable.
+<hr />
 
-The only requirement is having Node.js & npm installed - [install with nvm](https://github.com/nvm-sh/nvm#installing-and-updating)
+<h2>🚀 Getting Started</h2>
+<h3>1️⃣ Clone the repository</h3>
+<pre>
+git clone https://https://github.com/MohammedFawzaan/Virtual-Chemistry-Laboratory.git
+</pre>
 
-Follow these steps:
+<h3>2️⃣ Install dependencies</h3>
+<pre>
+npm install
+</pre>
 
-```sh
-# Step 1: Clone the repository using the project's Git URL.
-git clone <YOUR_GIT_URL>
+<h3>3️⃣ Create a <code>.env</code> file</h3>
+<pre>
+VITE_BACKEND_URL=http://localhost:5000
+</pre>
 
-# Step 2: Navigate to the project directory.
-cd <YOUR_PROJECT_NAME>
-
-# Step 3: Install the necessary dependencies.
-npm i
-
-# Step 4: Start the development server with auto-reloading and an instant preview.
+<h3>4️⃣ Start development server</h3>
+<pre>
 npm run dev
-```
+</pre>
 
-**Edit a file directly in GitHub**
+<hr />
 
-- Navigate to the desired file(s).
-- Click the "Edit" button (pencil icon) at the top right of the file view.
-- Make your changes and commit the changes.
+<h2>📦 Build for Production</h2>
+<pre>
+npm run build
+</pre>
 
-**Use GitHub Codespaces**
+<hr />
 
-- Navigate to the main page of your repository.
-- Click on the "Code" button (green button) near the top right.
-- Select the "Codespaces" tab.
-- Click on "New codespace" to launch a new Codespace environment.
-- Edit files directly within the Codespace and commit and push your changes once you're done.
+<p align="center">Backend powering the Virtual Chemistry Laboratory platform - <a href="https://github.com/MohammedFawzaan/Backend-Service-For-LabXpert" target="_blank">Backend Repo.</a></p>
 
-## What technologies are used for this project?
+<hr />
 
-This project is built with:
+<h2>📜 License</h2>
+<p>By Mohammed Fawzaan.</p>
 
-- Vite
-- TypeScript
-- React
-- shadcn-ui
-- Tailwind CSS
-
-## How can I deploy this project?
-
-Simply open [Lovable](https://lovable.dev/projects/4d1c0911-ee28-416b-9f5a-d08f53fcf64a) and click on Share -> Publish.
-
-## Can I connect a custom domain to my Lovable project?
-
-Yes, you can!
-
-To connect a domain, navigate to Project > Settings > Domains and click Connect Domain.
-
-Read more here: [Setting up a custom domain](https://docs.lovable.dev/features/custom-domain#custom-domain)
+</body>
+</html>
