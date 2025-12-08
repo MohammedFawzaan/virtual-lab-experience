@@ -297,7 +297,7 @@ const Distillation: React.FC<Props> = ({ experimentId: propExperimentId, experim
 
   const backToDashboard = async () => {
     if (!isComplete && runId) {
-      toast.info("Unsaved experiment was reset before navigating away.");
+      if (!confirm("Are you sure? This won't save your experiment.")) return;
       await resetExperiment();
     }
     navigate('/student/dashboard');
@@ -333,7 +333,6 @@ const Distillation: React.FC<Props> = ({ experimentId: propExperimentId, experim
               <RotateCcw className="w-4 h-4" />
               <span className="hidden md:inline">Reset</span>
             </Button>
-            {/* START / COMPLETE */}
             {runId ? (
               <Button
                 size="sm"

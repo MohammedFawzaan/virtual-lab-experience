@@ -283,7 +283,7 @@ const Titration: React.FC<Props> = ({ experimentId: propExperimentId, experiment
   };
 
   const backToDashboard = async () => {
-    if (!isComplete) {
+    if (!isComplete && runId) {
       if (!confirm("Are you sure? This won't save your experiment.")) return;
       await resetExperiment();
     }
