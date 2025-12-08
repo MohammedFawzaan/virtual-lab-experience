@@ -8,6 +8,126 @@ import { toast } from "sonner";
 import api from "@/api/client";
 import { useNavigate } from "react-router-dom";
 
+// --- STYLES CONSTANT ---
+const STYLES = `
+  @keyframes stir {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+  }
+  @keyframes drop {
+    0% { transform: translateY(-5px) scale(0.5); opacity: 1; }
+    100% { transform: translateY(20px) scale(1.5); opacity: 0; }
+  }
+  .animate-stir {
+    animation: stir 1s linear infinite;
+    transform-origin: center;
+  }
+  .animate-drop {
+    animation: drop 0.4s ease-in forwards;
+  }
+  /* Glass effect for containers */
+  .glass-effect {
+    background: rgba(255, 255, 255, 0.7);
+    backdrop-filter: blur(5px);
+    border: 1px solid rgba(200, 200, 200, 0.5);
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  }
+  .burette-markings div {
+      position: absolute;
+      left: 0;
+      right: 0;
+      height: 1px;
+      background-color: rgba(0,0,0,0.3);
+  }
+  .burette-markings span {
+      position: absolute;
+      right: -25px;
+      font-size: 0.7rem;
+      color: #333;
+      background-color: #fff8;
+      padding: 0 2px;
+      border-radius: 2px;
+  }
+`;
+
+// --- Titration Apparatus Visualization Component ---
+const TitrationApparatus = ({ volume, color, isStirring, isDropping }: { volume: number, color: string, isStirring: boolean, isDropping: boolean }) => {
+  const BURETTE_MAX_VOLUME = 50.0;
+  // Calculate liquid level in burette (drops from 100% down to 0% of the maximum 50mL)
+  const buretteLevelPercentage = Math.max(0, 100 - (volume / BURETTE_MAX_VOLUME) * 100);
+
+  // Simple light color for the Titrant (Base)
+  const titrantColor = "#fcd34d"; // Yellow/gold color for NaOH
+
+  // Use the main color for the Analyte (Acid) in the flask
+  const flaskBackgroundColor = color;
+
+  return (
+    <div className="relative w-full h-[500px] flex justify-center items-start pt-4">
+      {/* 1. BURETTE STAND/CLAMP (Simplified) */}
+      <div className="absolute top-0 w-1 h-full bg-gray-300 left-1/2 -translate-x-1/2 z-10"></div>
+      <div className="absolute top-52 w-24 h-4 bg-gray-400 left-1/2 -translate-x-1/2 rounded-full z-20"></div>
+
+      {/* 2. BURETTE */}
+      <div className="absolute top-0 w-10 h-[380px] bg-gray-200/50 rounded-b-lg overflow-hidden border-2 border-gray-400/50 z-30 shadow-inner">
+        {/* Titrant Liquid Level */}
+        <div
+          className="absolute top-0 w-full transition-all duration-300 ease-linear"
+          style={{
+            height: `${buretteLevelPercentage}%`,
+            background: titrantColor
+          }}
+        ></div>
+        {/* Burette Tip (Stopcock Area) */}
+        <div className="absolute bottom-[-15px] left-1/2 -translate-x-1/2 w-4 h-6 bg-gray-600 rounded-b-lg z-40"></div>
+
+        {/* Burette Volume Labels (Mock) */}
+        <div className="absolute inset-0 burette-markings">
+          <div style={{ top: '0%' }}><span style={{ top: '-10px' }}>0</span></div>
+          <div style={{ top: '25%' }}><span style={{ top: '-10px' }}>12.5</span></div>
+          <div style={{ top: '50%' }}><span style={{ top: '-10px' }}>25</span></div>
+          <div style={{ top: '75%' }}><span style={{ top: '-10px' }}>37.5</span></div>
+          <div style={{ top: '100%' }}><span style={{ top: '-10px' }}>50</span></div>
+        </div>
+      </div>
+
+      {/* 3. DROP ANIMATION */}
+      <div className="absolute top-[380px] z-50">
+        {isDropping && (
+          <div className={`w-1 h-1 rounded-full bg-yellow-600 animate-drop`} key={volume}></div>
+        )}
+      </div>
+
+      {/* 4. CONICAL FLASK */}
+      <div className="absolute bottom-0 w-40 h-40">
+        {/* Flask Neck */}
+        <div className="absolute -top-10 left-1/2 -translate-x-1/2 w-16 h-10 bg-gray-300/50 rounded-t-lg border-x-2 border-gray-400/50 z-30"></div>
+        {/* Flask Body (Conical shape achieved with border-radius) */}
+        <div className="w-full h-full bg-gray-200/50 rounded-b-[40px] rounded-t-sm border-x-2 border-b-4 border-gray-400/50 relative overflow-hidden shadow-2xl z-40">
+
+          {/* Analyte Liquid (Acid + Indicator + Titrant) - Fixed height for a base volume */}
+          <div
+            className="absolute inset-x-0 bottom-0 transition-all duration-700 ease-linear"
+            style={{ height: '70%', backgroundColor: flaskBackgroundColor, boxShadow: `0 0 10px 5px ${flaskBackgroundColor}` }}
+          >
+            {/* Stir Bar Animation */}
+            {isStirring && (
+              <div className="absolute top-[60%] left-1/2 -translate-x-1/2 -translate-y-1/2 w-10 h-2">
+                <div className="w-full h-full bg-gray-800 rounded-full animate-stir shadow-lg"></div>
+              </div>
+            )}
+          </div>
+        </div>
+      </div>
+
+      {/* 5. MAGNETIC STIRRER PLATE */}
+      <div className="absolute bottom-[-10px] w-48 h-10 bg-gray-700 rounded-xl shadow-inner z-0 flex items-center justify-center">
+        <div className="text-white font-mono text-xs">Magnetic Stirrer</div>
+      </div>
+    </div>
+  );
+};
+
 type Props = {
   experimentId?: string;
   experimentTitle?: string;
@@ -27,9 +147,19 @@ const Titration: React.FC<Props> = ({ experimentId: propExperimentId, experiment
   const [isComplete, setIsComplete] = useState(false);
   const [observations, setObservations] = useState<Array<string>>([]);
   const [isSaving, setIsSaving] = useState(false);
+  const [isDropping, setIsDropping] = useState(false); // New state
 
   const hasFinalizedRef = useRef(false);
   const [experimentTitle, setExperimentTitle] = useState(propExperimentTitle || "Titration");
+
+  // New Effect for drop animation
+  useEffect(() => {
+    if (volume > 0) {
+      setIsDropping(true);
+      const timer = setTimeout(() => setIsDropping(false), 400); // Animation duration
+      return () => clearTimeout(timer);
+    }
+  }, [volume]);
 
   useEffect(() => {
     const handleBack = async () => {
@@ -162,6 +292,7 @@ const Titration: React.FC<Props> = ({ experimentId: propExperimentId, experiment
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-background via-muted/20 to-primary/5">
+      <style>{STYLES}</style>
 
       {/* HEADER */}
       <header className="border-b border-border/50 backdrop-blur-sm bg-background/80 sticky top-0 z-50">
@@ -251,50 +382,27 @@ const Titration: React.FC<Props> = ({ experimentId: propExperimentId, experiment
 
           {/* Center Panel (Equipment) */}
           <Card className="glass-effect p-8 lg:col-span-1 flex flex-col items-center justify-center space-y-8">
-            <div className="text-center space-y-2">
-              <h2 className="text-2xl font-bold">Titration Setup</h2>
-              <p className="text-sm text-muted-foreground">Use the controls below to perform the experiment</p>
+
+            {/* 1. Digital pH Display (High Visibility) */}
+            <div className="bg-gray-800 p-4 rounded-xl shadow-inner w-full text-center font-mono border-4 border-gray-700">
+              <p className="text-sm text-gray-300 mb-1">REAL-TIME pH METER</p>
+              <p className="text-6xl font-extrabold text-green-400 leading-none transition-all duration-300">
+                {pH.toFixed(2)}
+              </p>
+              <div className="text-xs text-gray-400 mt-2">
+                <span className={`px-2 py-0.5 rounded-full font-semibold ${pH <= 7 ? 'bg-red-700 text-white' : 'bg-blue-700 text-white'}`}>
+                  {pH <= 7 ? 'ACIDIC' : 'BASIC'}
+                </span>
+              </div>
             </div>
 
-            {/* Burette */}
-            <div className="relative w-32 h-80 bg-gradient-to-b from-muted/30 to-muted/10 rounded-3xl border-4 border-primary/30 overflow-hidden shadow-2xl">
-              <div className="absolute inset-0 flex flex-col justify-between p-2 pointer-events-none">
-                {[0, 10, 20, 30, 40, 50].map((mark) => (
-                  <div key={mark} className="flex items-center justify-between text-xs text-muted-foreground">
-                    <span className="w-2 h-px bg-primary/40" />
-                    <span className="font-mono">{mark}</span>
-                  </div>
-                ))}
-              </div>
-              <div
-                className="absolute bottom-0 left-0 right-0 transition-all duration-500 ease-out"
-                style={{
-                  height: `${(volume / 50) * 100}%`,
-                  background: `linear-gradient(to bottom, ${color}dd, ${color})`
-                }}
-              />
-            </div>
-
-            {/* Beaker */}
-            <div className="relative">
-              <div className="w-48 h-48 rounded-full border-8 border-primary/20 overflow-hidden shadow-2xl bg-gradient-to-b from-transparent to-muted/20">
-                <div
-                  className="absolute bottom-0 left-0 right-0 transition-all duration-700 ease-out"
-                  style={{
-                    height: '80%',
-                    background: `linear-gradient(to bottom, ${color}dd, ${color})`,
-                    boxShadow: '0 0 40px rgba(255, 107, 107, 0.3)'
-                  }}
-                />
-              </div>
-              <div className="text-center mt-4">
-                <p className="text-sm text-muted-foreground">Solution Color</p>
-                <div className="flex items-center justify-center gap-2 mt-2">
-                  <div className="w-8 h-8 rounded-full border-2 border-primary/30" style={{ backgroundColor: color }} />
-                  <span className="font-mono text-sm">{color}</span>
-                </div>
-              </div>
-            </div>
+            {/* 2. Titration Apparatus Visualization */}
+            <TitrationApparatus
+              volume={volume}
+              color={color}
+              isStirring={!!runId && !isComplete}
+              isDropping={isDropping}
+            />
 
             {/* Slider */}
             <div className="w-full space-y-4">
@@ -302,7 +410,8 @@ const Titration: React.FC<Props> = ({ experimentId: propExperimentId, experiment
                 <span className="text-sm font-medium">Volume Added (mL)</span>
                 <span className="text-2xl font-bold font-mono text-primary">{volume.toFixed(1)}</span>
               </div>
-              <Slider value={[volume]} onValueChange={handleVolumeChange} max={50} step={0.1} className="w-full" />
+              <Slider value={[volume]} onValueChange={handleVolumeChange} max={50} step={0.1} className="w-full" disabled={!runId || isComplete} />
+              <p className="text-xs text-muted-foreground italic text-center">Slide to add Titrant (Base) dropwise. Total burette capacity: 50 mL.</p>
             </div>
           </Card>
 
